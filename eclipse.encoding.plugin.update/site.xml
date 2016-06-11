@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Encoding StatusBar Update Site" url="https://github.com/cypher256/eclipse-encoding-plugin/tree/master/eclipse.encoding.plugin.update">
+      An update site for Encoding StatusBar Eclipse Plugin.
+   </description>
+   <feature url="features/eclipse.encoding.plugin.feature_1.0.0.201606112136.jar" id="eclipse.encoding.plugin.feature" version="1.0.0.201606112136">
+      <category name="eclipse.encoding.plugin.category"/>
+   </feature>
+   <category-def name="eclipse.encoding.plugin.category" label="Encoding StatusBar"/>
+</site>

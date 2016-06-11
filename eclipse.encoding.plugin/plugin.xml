@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.trim.status">
+         <toolbar
+               id="mergedoc.encoding.toolbars.FileEncodingInfo">
+            <control
+                  class="mergedoc.encoding.FileEncodingInfoControlContribution">
+            </control>
+            <command
+                  commandId="mergedoc.encoding.commands.fixheight"
+                  label="%mergedoc.encoding.commands.fixheight"
+                  style="push">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
+
+</plugin>
