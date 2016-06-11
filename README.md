@@ -6,7 +6,7 @@ This project has been created from the [ystsoi/eclipse-fileencodinginfo](https:/
 Line ending: CRLF, LF, Mixed  
 ![](image/encoding.jpg)  
 
-#### Change text file encoding setting by file
+**Change text file encoding setting by file**  
 To add a encoding: Preference > General > Workspace > Text file encoding > Other  
 ![](image/encoding_select.jpg)  
 
