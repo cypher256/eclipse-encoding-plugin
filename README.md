@@ -9,7 +9,9 @@ Line ending: CRLF, LF, Mixed
 To add a encoding: Preference > General > Workspace > Text file encoding > Other  
 ![](image/encoding_select.jpg)  
 
-## Installation Update Site
+## Installation
+
+**Update Site**  
 Help > Install New Software...  
 https://raw.githubusercontent.com/cypher256/eclipse-encoding-plugin/master/eclipse.encoding.plugin.update/site.xml
 
