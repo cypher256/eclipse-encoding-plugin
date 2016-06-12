@@ -1,5 +1,5 @@
 # Encoding StatusBar Eclipse Plugin
-Displays information about the open editor file in the eclipse status bar.  
+Show file information for the active editor in the eclipse status bar.  
 
 **Show file encoding and line ending**  
 Line ending: CRLF, LF, Mixed  
