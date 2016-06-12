@@ -21,7 +21,6 @@ import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 
 /**
  * Show the file encoding information for the active document.
- * Include the current file encoding and the file encoding as detected by ICU.
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
