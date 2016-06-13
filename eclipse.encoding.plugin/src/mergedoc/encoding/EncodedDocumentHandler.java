@@ -137,28 +137,34 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 	}
 	protected void setLineBreak(InputStream is) throws IOException {
 		try {
-			InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), "US-ASCII");
+			InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), encoding);
 			StringBuilder sb = new StringBuilder();
-			char[] buff = new char[1024];
+			char[] buff = new char[4096];
 			int read;
 			while((read = reader.read(buff)) != -1) {
 			    sb.append(buff, 0, read);
+			    if (sb.length() >= buff.length) {
+			    	break;
+			    }
 			}
 			String s = sb.toString();
-			boolean containsCRLF = s.contains("\r\n");
-			if (containsCRLF) {
+			boolean crlf = s.contains("\r\n");
+			if (crlf) {
 				s = s.replaceAll("\\r\\n", "");
 			}
-			boolean containsLF = s.contains("\n");
+			boolean cr = s.contains("\r");
+			boolean lf = s.contains("\n");
 
-			if (containsCRLF && containsLF) {
-				lineEnding = "Mixed";
-			} else if (containsCRLF) {
+			if (crlf && !cr && !lf) {
 				lineEnding = "CRLF";
-			} else if (containsLF) {
+			} else if (!crlf && cr && !lf) {
+				lineEnding = "CR";
+			} else if (!crlf && !cr && lf) {
 				lineEnding = "LF";
+			} else if (!crlf && !cr && !lf) {
+				lineEnding = null;
 			} else {
-				// null
+				lineEnding = "Mixed";
 			}
 		} finally {
 			is.close();
