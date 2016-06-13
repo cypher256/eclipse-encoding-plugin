@@ -118,7 +118,7 @@ public class FileEncodingInfoControlContribution extends
 						boolean is_document_dirty = FileEncodingInfoControlContribution.this.agent.isDocumentDirty();
 						if (is_document_dirty) {
 							MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
-							item.setText("Please save the document first.");
+							item.setText(String.format("Please save the document first."));
 						}
 						// Add menu items, the charset with the highest confidence is in the bottom.
 						for (final String encoding : encodingList) {
