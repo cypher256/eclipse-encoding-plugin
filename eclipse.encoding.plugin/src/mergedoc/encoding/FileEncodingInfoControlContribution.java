@@ -1,5 +1,6 @@
 package mergedoc.encoding;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jface.action.IContributionManager;
@@ -37,6 +38,7 @@ public class FileEncodingInfoControlContribution extends
 
 	// ADD S.Kashihara
 	private Label line_ending_label;
+	private List<String> encodingList;
 
 	public FileEncodingInfoControlContribution() {
 	}
@@ -74,7 +76,6 @@ public class FileEncodingInfoControlContribution extends
 		GridData breakGridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_CENTER);
 		breakGridData.widthHint = 40;
 		line_ending_label.setLayoutData(breakGridData);
-		line_ending_label.setText("xxxx");
 		// ADD S.Kashihara END
 
 		fillComp();
@@ -82,6 +83,7 @@ public class FileEncodingInfoControlContribution extends
 		return comp;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void fillComp() {
 		// Get the encoding information of the active document.
 		current_file_encoding = agent.getEncoding();
@@ -92,8 +94,11 @@ public class FileEncodingInfoControlContribution extends
 
 		if (agent.enableChangeEncoding()) {
 
-			@SuppressWarnings("unchecked")
-			final List<String> encodingList = IDEEncoding.getIDEEncodings();
+			encodingList = IDEEncoding.getIDEEncodings();
+			if (current_file_encoding != null && !encodingList.contains(current_file_encoding)) {
+				encodingList.add(current_file_encoding);
+				Collections.sort(encodingList);
+			}
 
 			boolean isListenerAdded = true;
 			if (file_encoding_popup_menu == null) {
