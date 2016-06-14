@@ -5,7 +5,7 @@ Show file information for the active editor in the Eclipse status bar.
 Line ending: CRLF, CR, LF and Mixed  
 ![](image/encoding.jpg)  
 
-**Change "Text File Encoding" setting by file property.**  
+**Change "Text File Encoding" setting by file property**  
 To add a encoding: Preference > General > Workspace > Text file encoding > Other  
 ![](image/encoding_select.jpg)  
 
