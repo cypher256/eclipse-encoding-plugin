@@ -6,7 +6,7 @@ Line ending: CRLF, CR, LF and Mixed
 ![](image/encoding.jpg)  
 
 **Change "Text File Encoding" setting by file property**  
-To add a encoding: Preference > General > Workspace > Text file encoding > Other  
+To add a encoding: Preference > General > Workspace > Text File Encoding > Other  
 ![](image/encoding_select.jpg)  
 
 ## Installation
