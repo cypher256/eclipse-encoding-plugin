@@ -10,10 +10,14 @@ To add a encoding: Preference > General > Workspace > Text file encoding > Other
 ![](image/encoding_select.jpg)  
 
 ## Installation
-
+**Eclipse Marketplace**  
+https://marketplace.eclipse.org/content/encoding-statusbar  
+Drag install button to your running Eclipse workspace to install.  
+<!--
 **Update Site**  
 Help > Install New Software...  
 https://raw.githubusercontent.com/cypher256/eclipse-encoding-plugin/master/eclipse.encoding.plugin.update/site.xml
+-->
 
 ## License
 [Eclipse Public License - v 1.0](https://www.eclipse.org/legal/epl-v10.html)  
