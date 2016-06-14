@@ -12,7 +12,7 @@ To add a encoding: Preference > General > Workspace > Text file encoding > Other
 ## Installation
 **Eclipse Marketplace**  
 https://marketplace.eclipse.org/content/encoding-statusbar  
-Drag install button to your running Eclipse workspace to install.  
+Drag install button of the above site to your running Eclipse workspace to install.  
 <!--
 **Update Site**  
 Help > Install New Software...  
