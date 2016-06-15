@@ -6,8 +6,8 @@ Line ending: CRLF, CR, LF and Mixed
 ![](image/encoding.jpg)  
 
 **Change "Text File Encoding" setting by file property**  
-Inheritance: inherited from folder or project property, workspace preferences  
-Autodetect: automatic detection by juniversalchardet  
+Inheritance: Inherited from folder or project property, workspace preferences  
+Autodetect: Automatic detection by juniversalchardet  
 To add the encoding, use Preference > General > Workspace > Text File Encoding > Other.  
 ![](image/encoding_select.jpg)  
 
