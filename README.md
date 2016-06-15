@@ -6,8 +6,9 @@ Line ending: CRLF, CR, LF and Mixed
 ![](image/encoding.jpg)  
 
 **Change "Text File Encoding" setting by file property**  
-Use the juniversalchardet automatic detection of character set.  
-To add a encoding: Preference > General > Workspace > Text File Encoding > Other  
+Inheritance: inherited from container  
+Autodetect: automatic detection by juniversalchardet  
+To add the encoding, use Preference > General > Workspace > Text File Encoding > Other.  
 ![](image/encoding_select.jpg)  
 
 ## Installation
