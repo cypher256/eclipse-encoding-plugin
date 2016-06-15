@@ -1,10 +1,13 @@
 package mergedoc.encoding;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+
+import org.mozilla.universalchardet.UniversalDetector;
 
 /**
  * Provide encoding related utility functions.
@@ -29,6 +32,45 @@ public class EncodingUtil {
 		} catch (IllegalArgumentException e) {
 			return false;
 		}
+	}
+
+	/**
+	 * Detect the possible charsets of an input stream using ICU.
+	 * @param in The input stream, should close the stream before return.
+	 * @return the detected charsets or null.
+	 */
+	public static String detectEncoding(InputStream in) {
+		if (in != null) {
+			try {
+				InputStream bin = new BufferedInputStream(in);
+				try {
+					UniversalDetector detector = new UniversalDetector(null);
+					byte[] buf = new byte[4096];
+					int nread;
+					while ((nread = in.read(buf)) > 0 && !detector.isDone()) {
+						detector.handleData(buf, 0, nread);
+					}
+					detector.dataEnd();
+					String encoding = detector.getDetectedCharset();
+					if (encoding != null) {
+						encoding = Charset.forName(encoding).name();
+
+						// to java.lang API canonical name (not java.io API) for Japanese
+						if (areCharsetsEqual(encoding, "Shift_JIS") || areCharsetsEqual(encoding, "MS932")) {
+							encoding = "MS932";
+						}
+					}
+					return encoding;
+				}
+				finally {
+					bin.close();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 
 	/**

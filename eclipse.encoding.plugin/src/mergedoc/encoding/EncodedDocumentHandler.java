@@ -120,12 +120,17 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 		return !is_not_updated;
 	}
 
-	// ADD S.Kashihara
 	protected String containerEncoding;
+	protected String detectedEncoding;
 	protected String lineEnding;
+
 	@Override
 	public String getContainerEncoding() {
 		return containerEncoding;
+	}
+	@Override
+	public String getDetectedEncoding() {
+		return detectedEncoding;
 	}
 	@Override
 	public String getLineEnding() {
@@ -135,7 +140,9 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 	public boolean enableChangeEncoding() {
 		return false;
 	}
-	protected void setLineBreak(InputStream is) throws IOException {
+
+	protected void resolveLineEnding(InputStream is) throws IOException {
+
 		try {
 			InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), encoding);
 			StringBuilder sb = new StringBuilder();

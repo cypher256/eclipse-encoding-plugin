@@ -41,13 +41,21 @@ class StorageEditorInputHandler extends EncodedDocumentHandler {
 	 */
 	private boolean updateEncodingInfoPrivately() {
 
-		// ADD S.Kashihara
 		containerEncoding = null;
-		try {
-			lineEnding = null;
-			setLineBreak(storage.getContents());
-		} catch (Exception e) {
-			// NOP
+		detectedEncoding = null;
+		lineEnding = null;
+
+		if (storage != null) {
+			try {
+				resolveLineEnding(storage.getContents());
+			} catch (Exception e) {
+				// NOP
+			}
+			try {
+				detectedEncoding = EncodingUtil.detectEncoding(storage.getContents());
+			} catch (Exception e) {
+				// NOP
+			}
 		}
 
 		// Just assume that the encoding information is updated.

@@ -15,11 +15,13 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 
 
 /**
- * This agent tries to provide the encoding of the document of the active editor. It also provides method to set the encoding of the document.
+ * This agent tries to provide the encoding of the document of the active editor.
+ * It also provides method to set the encoding of the document.
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
 public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
+
 	// Callback for this agent.
 	private IActiveDocumentAgentCallback callback;
 
@@ -33,8 +35,8 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	IWorkbenchWindow window;
 
 	public ActiveDocumentAgent(IActiveDocumentAgentCallback callback) {
-		if (callback == null) throw new IllegalArgumentException("Please provide a callback.");
 
+		if (callback == null) throw new IllegalArgumentException("Please provide a callback.");
 		this.callback = callback;
 
 		// Initialize the current handler to a dummy handler, so that we do not need to check whether it is null.
@@ -56,22 +58,16 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	}
 
 	/**
-	 * Get the encoding setting of the active document, if supported by the editor.
-	 * @return the encoding setting or null.
+	 * Check whether the active document is dirty or not.
+	 * @return true/false
 	 */
-	public String getEncoding() {
-		return current_handler.getEncoding();
+	public boolean isDocumentDirty() {
+		return current_handler == null ? false : (current_handler.getEditor() == null ? false : current_handler.getEditor().isDirty());
 	}
 
 	// ADD S.Kashihara
-	public String getContainerEncoding() {
-		return current_handler.getContainerEncoding();
-	}
-	public String getLineEnding() {
-		return current_handler.getLineEnding();
-	}
-	public boolean enableChangeEncoding() {
-		return current_handler.enableChangeEncoding();
+	public IActiveDocumentAgentHandler getHandler() {
+		return current_handler;
 	}
 
 	/**
@@ -109,22 +105,6 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 			}
 		}
 		return new DummyHandler(part, callback);
-	}
-
-	/**
-	 * Get the name of the active document, if supported by the editor and the editor input.
-	 * @return the name or null.
-	 */
-	public String getName() {
-		return current_handler.getName();
-	}
-
-	/**
-	 * Check whether the active document is dirty or not.
-	 * @return true/false
-	 */
-	public boolean isDocumentDirty() {
-		return current_handler == null ? false : (current_handler.getEditor() == null ? false : current_handler.getEditor().isDirty());
 	}
 
 	@Override
@@ -200,13 +180,6 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 		if (editor != null) {
 			editor.addPropertyListener(this);
 		}
-	}
-
-	/**
-	 * Set the encoding of the active document, if supported by the editor.
-	 */
-	public void setEncoding(String encoding) {
-		current_handler.setEncoding(encoding);
 	}
 
 	/**

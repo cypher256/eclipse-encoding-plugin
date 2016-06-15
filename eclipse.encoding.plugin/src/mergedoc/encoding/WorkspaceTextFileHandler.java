@@ -26,7 +26,6 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 		updateEncodingInfoPrivately();
 	}
 
-	// ADD S.Kashihara
 	@Override
 	public boolean enableChangeEncoding() {
 		return true;
@@ -47,20 +46,26 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 	 */
 	private boolean updateEncodingInfoPrivately() {
 
-		// ADD S.Kashihara
-		try {
-			containerEncoding = null;
-			containerEncoding = text_file.getParent().getDefaultCharset();
-		} catch (CoreException e) {
-			// NOP
-			e.printStackTrace();
-		}
-		try {
-			lineEnding = null;
-			setLineBreak(text_file.getContents());
-		} catch (Exception e) {
-			// NOP
-			e.printStackTrace();
+		containerEncoding = null;
+		detectedEncoding = null;
+		lineEnding = null;
+
+		if (text_file != null) {
+			try {
+				containerEncoding = text_file.getParent().getDefaultCharset();
+			} catch (CoreException e) {
+				// NOP
+			}
+			try {
+				resolveLineEnding(text_file.getContents(true));
+			} catch (Exception e) {
+				// NOP
+			}
+			try {
+				detectedEncoding = EncodingUtil.detectEncoding(text_file.getContents(true));
+			} catch (Exception e) {
+				// NOP
+			}
 		}
 
 		// Just assume that the encoding information is updated.

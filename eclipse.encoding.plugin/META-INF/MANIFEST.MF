@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Encoding StatusBar
 Bundle-SymbolicName: mergedoc.encoding;singleton:=true
-Bundle-Version: 1.1.1.qualifier
+Bundle-Version: 1.2.0.qualifier
 Bundle-Activator: mergedoc.encoding.Activator
 Bundle-Vendor: Shinji Kashihara
 Require-Bundle: org.eclipse.ui,
@@ -14,3 +14,5 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.ui
+Bundle-ClassPath: lib/juniversalchardet-1.0.3.jar,
+ .

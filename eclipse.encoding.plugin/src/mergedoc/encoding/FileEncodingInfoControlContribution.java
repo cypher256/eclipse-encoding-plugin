@@ -31,12 +31,11 @@ public class FileEncodingInfoControlContribution extends
 	// The agent is responsible for monitoring the encoding information of the active document.
 	private ActiveDocumentAgent agent = new ActiveDocumentAgent(this);
 
-	private Composite comp;
+	private Composite statusBar;
 	private Label file_encoding_label;
 	private Menu file_encoding_popup_menu;
 	private String current_file_encoding;
 
-	// ADD S.Kashihara
 	private Label line_ending_label;
 	private List<String> encodingList;
 
@@ -52,53 +51,60 @@ public class FileEncodingInfoControlContribution extends
 	 */
 	@Override
 	protected Control createControl(Composite parent) {
-		// Start the agent, if needed.
+
 		agent.start(getWorkbenchWindow());
+		statusBar = new Composite(parent, SWT.NONE);
 
-		// Use StackLayout to stack labels.
-		comp = new Composite(parent, SWT.NONE);
-
-		// ADD S.Kashihara BEGIN
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 3;
 		gridLayout.marginHeight = 0;
-		comp.setLayout(gridLayout);
+		statusBar.setLayout(gridLayout);
 
-		file_encoding_label = new Label(comp, SWT.LEFT);
+		file_encoding_label = new Label(statusBar, SWT.LEFT);
 		GridData encodingGridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_CENTER);
 		encodingGridData.widthHint = 100;
 		file_encoding_label.setLayoutData(encodingGridData);
 
-		Label fill = new Label(comp, SWT.SEPARATOR | SWT.VERTICAL);
-		fill.setLayoutData(new GridData(GridData.FILL_BOTH));
+		Label separator = new Label(statusBar, SWT.SEPARATOR | SWT.VERTICAL);
+		separator.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		line_ending_label = new Label(comp, SWT.LEFT);
+		line_ending_label = new Label(statusBar, SWT.LEFT);
 		GridData breakGridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_CENTER);
 		breakGridData.widthHint = 40;
 		line_ending_label.setLayoutData(breakGridData);
-		// ADD S.Kashihara END
 
 		fillComp();
+		return statusBar;
+	}
 
-		return comp;
+	private void addEncodingList(String encoding) {
+		if (encoding != null) {
+			for (String e : encodingList) {
+				if (EncodingUtil.areCharsetsEqual(e, encoding)) {
+					return;
+				}
+			}
+			encodingList.add(encoding);
+			Collections.sort(encodingList);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	private void fillComp() {
+
 		// Get the encoding information of the active document.
-		current_file_encoding = agent.getEncoding();
+		IActiveDocumentAgentHandler handler = agent.getHandler();
+		current_file_encoding = handler.getEncoding();
 
 		file_encoding_label.setText(current_file_encoding == null ? "" : current_file_encoding);
-		String lineBreak = agent.getLineEnding();
+		String lineBreak = handler.getLineEnding();
 		line_ending_label.setText(lineBreak == null ? "" : lineBreak);
 
-		if (agent.enableChangeEncoding()) {
+		if (handler.enableChangeEncoding()) {
 
 			encodingList = IDEEncoding.getIDEEncodings();
-			if (current_file_encoding != null && !encodingList.contains(current_file_encoding)) {
-				encodingList.add(current_file_encoding);
-				Collections.sort(encodingList);
-			}
+			addEncodingList(current_file_encoding);
+			addEncodingList(handler.getDetectedEncoding());
 
 			boolean isListenerAdded = true;
 			if (file_encoding_popup_menu == null) {
@@ -106,12 +112,14 @@ public class FileEncodingInfoControlContribution extends
 				isListenerAdded = false;
 			}
 			file_encoding_label.setMenu(file_encoding_popup_menu);
-			file_encoding_label.setToolTipText(String.format("Right-click to change the encoding of '%s'", agent.getName()));
+			file_encoding_label.setToolTipText(String.format("Right-click to change the encoding of '%s'", handler.getName()));
 			if (!isListenerAdded) {
+
 				// Add the menu items dynamically.
 				file_encoding_popup_menu.addMenuListener(new MenuAdapter() {
 					@Override
 					public void menuShown(MenuEvent e) {
+
 						// Remove existing menu items.
 						for (MenuItem item: file_encoding_popup_menu.getItems()) item.dispose();
 						// Do not allow changing encoding when the document is dirty.
@@ -120,15 +128,25 @@ public class FileEncodingInfoControlContribution extends
 							MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 							item.setText(String.format("Please save the document first."));
 						}
-						// Add menu items, the charset with the highest confidence is in the bottom.
+						IActiveDocumentAgentHandler handler = agent.getHandler();
+
+						// Add menu items.
 						for (final String encoding : encodingList) {
-							final boolean isContainerEncoding = encoding.equals(agent.getContainerEncoding());
+
 							final MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.RADIO);
-							if (isContainerEncoding) {
-								item.setText(String.format("%s (inherited from container)", encoding));
+							final boolean isContainerEncoding = encoding.equals(handler.getContainerEncoding());
+							boolean isDetected = EncodingUtil.areCharsetsEqual(encoding, handler.getDetectedEncoding());
+
+							if (isDetected && isContainerEncoding) {
+								item.setText(String.format("%s (Autodetect, Inheritance)", encoding));
+							} else if (isDetected) {
+								item.setText(String.format("%s (Autodetect)", encoding));
+							} else if (isContainerEncoding) {
+								item.setText(String.format("%s (Inheritance)", encoding));
 							} else {
 								item.setText(encoding);
 							}
+
 							item.setEnabled(!is_document_dirty);
 							if (EncodingUtil.areCharsetsEqual(encoding, current_file_encoding)) {
 								item.setSelection(true);
@@ -137,12 +155,12 @@ public class FileEncodingInfoControlContribution extends
 								@Override
 								public void widgetSelected(SelectionEvent e) {
 									if (item.getSelection()) {
+										IActiveDocumentAgentHandler handler = agent.getHandler();
 										// Set the charset.
-										ActiveDocumentAgent agent = FileEncodingInfoControlContribution.this.agent;
 										if (isContainerEncoding) {
-											agent.setEncoding(null);
+											handler.setEncoding(null);
 										} else {
-											agent.setEncoding(encoding);
+											handler.setEncoding(encoding);
 										}
 									}
 								}
@@ -184,7 +202,7 @@ public class FileEncodingInfoControlContribution extends
 				IContributionManager manager = getParent();
 				if (manager != null) {
 					manager.update(true);
-				} else if (!comp.isDisposed()) {
+				} else if (!statusBar.isDisposed()) {
 					fillComp();
 				}
 			}

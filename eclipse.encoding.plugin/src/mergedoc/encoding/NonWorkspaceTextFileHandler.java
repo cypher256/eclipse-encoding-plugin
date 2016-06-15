@@ -53,12 +53,18 @@ class NonWorkspaceTextFileHandler extends EncodedDocumentHandler {
 	 */
 	private boolean updateEncodingInfoPrivately() {
 
-		// ADD S.Kashihara
 		containerEncoding = null;
+		detectedEncoding = null;
 		lineEnding = null;
+
 		if (text_file_store != null) {
 			try {
-				setLineBreak(text_file_store.openInputStream(EFS.NONE, null));
+				resolveLineEnding(text_file_store.openInputStream(EFS.NONE, null));
+			} catch (Exception e) {
+				// NOP
+			}
+			try {
+				detectedEncoding = EncodingUtil.detectEncoding(text_file_store.openInputStream(EFS.NONE, null));
 			} catch (Exception e) {
 				// NOP
 			}

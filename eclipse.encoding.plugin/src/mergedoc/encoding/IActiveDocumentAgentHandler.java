@@ -11,22 +11,38 @@ import org.eclipse.ui.IWorkbenchPart;
  * @author Shinji Kashihara
  */
 interface IActiveDocumentAgentHandler {
+
 	/**
 	 * Get the editor associated with this handler.
 	 * If the associated editor is different from the active editor, ActiveDocumentAgent will change handler.
 	 */
-	public IEditorPart getEditor();
+	IEditorPart getEditor();
 
 	// Methods corresponding to those in ActiveDocumentAgent.
-	public String getEncoding();
-	public String getName();
-	public void propertyChanged(Object source, int propId);
-	public void resourceChanged(IResourceChangeEvent event);
-	public void selectionChanged(IWorkbenchPart part, ISelection selection);
-	public void setEncoding(String encoding);
+	/**
+	 * Get the encoding setting of the active document, if supported by the editor.
+	 * @return the encoding setting or null.
+	 */
+	String getEncoding();
+
+	/**
+	 * Set the encoding of the active document, if supported by the editor.
+	 */
+	void setEncoding(String encoding);
+
+	/**
+	 * Get the name of the active document, if supported by the editor and the editor input.
+	 * @return the name or null.
+	 */
+	String getName();
+
+	void propertyChanged(Object source, int propId);
+	void resourceChanged(IResourceChangeEvent event);
+	void selectionChanged(IWorkbenchPart part, ISelection selection);
 
 	// ADD S.Kashihara
-	public String getContainerEncoding();
-	public String getLineEnding();
-	public boolean enableChangeEncoding();
+	String getContainerEncoding();
+	String getDetectedEncoding();
+	String getLineEnding();
+	boolean enableChangeEncoding();
 }
