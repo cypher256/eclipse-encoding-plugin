@@ -104,6 +104,7 @@ public class FileEncodingInfoControlContribution extends
 
 			encodingList = IDEEncoding.getIDEEncodings();
 			addEncodingList(current_file_encoding);
+			addEncodingList(handler.getContainerEncoding());
 			addEncodingList(handler.getDetectedEncoding());
 
 			boolean isListenerAdded = true;
