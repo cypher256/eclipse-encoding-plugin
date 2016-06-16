@@ -2,7 +2,7 @@
 Show file information for the active editor in the Eclipse status bar.  
 
 **Show file encoding and line ending**  
-Line ending: CRLF, CR, LF and Mixed  
+Line ending support showing CRLF, CR, LF and Mixed, can also be changed.  
 ![](image/encoding.jpg)  
 
 **Change "Text File Encoding" setting by file property**  
