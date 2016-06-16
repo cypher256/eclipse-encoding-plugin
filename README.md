@@ -6,11 +6,11 @@ Line ending support showing CRLF, CR, LF and Mixed, can also be changed.
 ![](image/ending_select.jpg)  
 
 **Change "Text File Encoding" setting by file property**  
+To add the encoding, use Preference > General > Workspace > Text File Encoding > Other.  
+![](image/encoding_select.jpg)  
 Inheritance: Inherited from folder or project properties, workspace preferences  
 Autodetect: Automatic detection by juniversalchardet  
 Content Type: Determined from content type setting  
-To add the encoding, use Preference > General > Workspace > Text File Encoding > Other.  
-![](image/encoding_select.jpg)  
 
 ## Installation
 **Eclipse Marketplace**  
