@@ -1,5 +1,7 @@
 package mergedoc.encoding;
 
+import java.io.InputStream;
+
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.CoreException;
@@ -32,11 +34,12 @@ class NonWorkspaceTextFileHandler extends EncodedDocumentHandler {
 		updateEncodingInfoPrivately();
 	}
 
-	// ADD S.Kashihara
 	@Override
-	public boolean enableChangeEncoding() {
+	public boolean isFileEncodingChangeable() {
 		return true;
 	}
+
+	// Unsupport isLineEndingChangeable for confirm dialog.
 
 	/**
 	 * Update the encoding information in member variables.
@@ -59,12 +62,12 @@ class NonWorkspaceTextFileHandler extends EncodedDocumentHandler {
 
 		if (text_file_store != null) {
 			try {
-				resolveLineEnding(text_file_store.openInputStream(EFS.NONE, null));
+				resolveLineEnding(getInputStream());
 			} catch (Exception e) {
 				// NOP
 			}
 			try {
-				detectedEncoding = EncodingUtil.detectEncoding(text_file_store.openInputStream(EFS.NONE, null));
+				detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
 			} catch (Exception e) {
 				// NOP
 			}
@@ -74,4 +77,8 @@ class NonWorkspaceTextFileHandler extends EncodedDocumentHandler {
 		return true;
 	}
 
+	@Override
+	protected InputStream getInputStream() throws CoreException {
+		return text_file_store.openInputStream(EFS.NONE, null);
+	}
 }

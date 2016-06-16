@@ -13,7 +13,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.editors.text.IEncodingSupport;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 
-
 /**
  * This agent tries to provide the encoding of the document of the active editor.
  * It also provides method to set the encoding of the document.
@@ -48,6 +47,7 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 * @return the active editor, or null if there is no active editor.
 	 */
 	private IEditorPart getActiveEditor() {
+
 		if (window != null) {
 			IWorkbenchPage page = window.getActivePage();
 			if (page != null) {
@@ -75,11 +75,13 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 * @return a specific handler, or DummyHandler if there is no specific handler for an editor.
 	 */
 	private IActiveDocumentAgentHandler getHandler(IEditorPart part) {
+
 		if (part != null) {
 			if (part.getAdapter(IEncodingSupport.class) != null) {
 				if (part instanceof IEditorPart) {
 					IEditorPart editor = (IEditorPart) part;
 					IEditorInput editor_input = editor.getEditorInput();
+
 					if (editor_input instanceof IFileEditorInput) {
 						return new WorkspaceTextFileHandler(part, callback);
 					}
@@ -87,16 +89,15 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 						return new NonWorkspaceTextFileHandler(part, callback);
 					}
 					else if (editor_input instanceof IStorageEditorInput) {
+						// exclude class file in jar
 						try {
-							// in jar ignore class file
 							return new StorageEditorInputHandler(part, callback);
 						} catch (CoreException e) {
 							e.printStackTrace();
 							// Fallback to EncodedDocumentHandler.
 							return new EncodedDocumentHandler(part, callback);
 						}
-					}
-					else {
+					} else {
 						// class file in jar
 						return new DummyHandler(part, callback);
 					}
@@ -149,6 +150,7 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 * Check whether the active editor is changed.
 	 */
 	private void checkActiveEditor() {
+
 		IEditorPart active_editor = getActiveEditor();
 		if (active_editor != current_handler.getEditor()) {
 			// Get a new handler for the active editor, and invoke the callback.
@@ -163,6 +165,7 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 * @param handler
 	 */
 	private void setCurrentHandler(IActiveDocumentAgentHandler handler) {
+
 		if (handler == null) throw new IllegalArgumentException("handler must not be null.");
 
 		// Remove IPropertyListener from the old editor.
@@ -172,7 +175,6 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 				editor.removePropertyListener(this);
 			}
 		}
-
 		current_handler = handler;
 
 		// Add IPropertyListener to the new editor.
@@ -187,6 +189,7 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 * @param window The IWorkbenchWindow to work on.
 	 */
 	public void start(IWorkbenchWindow window) {
+
 		if (!is_started) {
 			if (window != null) {
 				is_started = true;
@@ -206,6 +209,7 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 * Stop to monitor the encoding of the active document, if started.
 	 */
 	public void stop() {
+
 		if (is_started) {
 			// Remove listeners.
 			window.getPartService().removePartListener(this);

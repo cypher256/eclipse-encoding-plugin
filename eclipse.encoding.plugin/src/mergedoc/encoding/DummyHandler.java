@@ -29,28 +29,6 @@ class DummyHandler implements IActiveDocumentAgentHandler {
 		return null;
 	}
 
-	// ADD S.Kashihara
-	@Override
-	public String getContainerEncoding() {
-		return null;
-	}
-	@Override
-	public String getDetectedEncoding() {
-		return null;
-	}
-	@Override
-	public String getContentTypeEncoding() {
-		return null;
-	}
-	@Override
-	public String getLineEnding() {
-		return null;
-	}
-	@Override
-	public boolean enableChangeEncoding() {
-		return false;
-	}
-
 	@Override
 	public String getName() {
 		return null;
@@ -70,5 +48,34 @@ class DummyHandler implements IActiveDocumentAgentHandler {
 
 	@Override
 	public void setEncoding(String encoding) {
+	}
+
+	// ADD S.Kashihara
+	@Override
+	public String getContainerEncoding() {
+		return null;
+	}
+	@Override
+	public String getDetectedEncoding() {
+		return null;
+	}
+	@Override
+	public String getContentTypeEncoding() {
+		return null;
+	}
+	@Override
+	public String getLineEnding() {
+		return null;
+	}
+	@Override
+	public boolean isFileEncodingChangeable() {
+		return false;
+	}
+	@Override
+	public boolean isLineEndingChangeable() {
+		return false;
+	}
+	@Override
+	public void setLineEnding(String lineEnding) {
 	}
 }

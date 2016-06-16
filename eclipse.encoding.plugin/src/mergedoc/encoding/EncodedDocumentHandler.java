@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
@@ -120,6 +121,7 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 		return !is_not_updated;
 	}
 
+	// ADD S.Kashihara
 	protected String containerEncoding;
 	protected String detectedEncoding;
 	protected String contentTypeEncoding;
@@ -142,7 +144,11 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 		return lineEnding;
 	}
 	@Override
-	public boolean enableChangeEncoding() {
+	public boolean isFileEncodingChangeable() {
+		return false;
+	}
+	@Override
+	public boolean isLineEndingChangeable() {
 		return false;
 	}
 
@@ -181,5 +187,14 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 		} finally {
 			is.close();
 		}
+	}
+
+	protected InputStream getInputStream() throws CoreException {
+		throw new UnsupportedOperationException("Not implements getInputStream method.");
+	}
+
+	@Override
+	public void setLineEnding(String newLineEnding) {
+		throw new UnsupportedOperationException("Not implements setLineEnding method.");
 	}
 }

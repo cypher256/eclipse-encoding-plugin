@@ -1,5 +1,10 @@
 package mergedoc.encoding;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.content.IContentDescription;
@@ -28,8 +33,12 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 	}
 
 	@Override
-	public boolean enableChangeEncoding() {
+	public boolean isFileEncodingChangeable() {
 		return true;
+	}
+	@Override
+	public boolean isLineEndingChangeable() {
+		return lineEnding != null;
 	}
 
 	/**
@@ -59,7 +68,7 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 				// NOP
 			}
 			try {
-				detectedEncoding = EncodingUtil.detectEncoding(text_file.getContents(true));
+				detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
 			} catch (Exception e) {
 				// NOP
 			}
@@ -72,7 +81,7 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 				// NOP
 			}
 			try {
-				resolveLineEnding(text_file.getContents(true));
+				resolveLineEnding(getInputStream());
 			} catch (Exception e) {
 				// NOP
 			}
@@ -82,4 +91,47 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 		return true;
 	}
 
+	@Override
+	protected InputStream getInputStream() throws CoreException {
+		return text_file.getContents(true);
+	}
+
+	@Override
+	public void setLineEnding(String newLineEnding) {
+
+		if (newLineEnding.equals(lineEnding)) {
+			return;
+		}
+		// Note: Replace on String, not stream. Unsupport big file.
+		try {
+			InputStream is = null;
+			try {
+				is = getInputStream();
+				InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), getEncoding());
+				StringBuilder sb = new StringBuilder();
+				char[] buff = new char[4096];
+				int read;
+				while((read = reader.read(buff)) != -1) {
+				    sb.append(buff, 0, read);
+				}
+
+				String newEnding = "\r\n";
+				if (newLineEnding.equals("CR")) {
+					newEnding = "\r";
+				} else if (newLineEnding.equals("LF")) {
+					newEnding = "\n";
+				}
+				String content = sb.toString().replaceAll("(\\r\\n|\\r|\\n)", newEnding);
+				ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes(getEncoding()));
+				text_file.setContents(bis, true, true, null);
+			}
+			finally {
+				if (is != null) {
+					is.close();
+				}
+			}
+		} catch (Exception e) {
+			// NOP
+		}
+	}
 }

@@ -1,5 +1,6 @@
 package mergedoc.encoding;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,14 +31,27 @@ public class FileEncodingInfoControlContribution extends
 
 	// The agent is responsible for monitoring the encoding information of the active document.
 	private ActiveDocumentAgent agent = new ActiveDocumentAgent(this);
+	private Composite status_bar;
 
-	private Composite statusBar;
 	private Label file_encoding_label;
 	private Menu file_encoding_popup_menu;
+	private List<String> file_encoding_list;
 	private String current_file_encoding;
 
 	private Label line_ending_label;
-	private List<String> encodingList;
+	private Menu line_ending_popup_menu;
+	private List<LineEndingItem> line_ending_list;
+	private String current_line_ending;
+
+	private static class LineEndingItem {
+		public String value;
+		public String desc;
+		public LineEndingItem(String value, String desc) {
+			super();
+			this.value = value;
+			this.desc = desc;
+		}
+	}
 
 	public FileEncodingInfoControlContribution() {
 	}
@@ -53,39 +67,39 @@ public class FileEncodingInfoControlContribution extends
 	protected Control createControl(Composite parent) {
 
 		agent.start(getWorkbenchWindow());
-		statusBar = new Composite(parent, SWT.NONE);
+		status_bar = new Composite(parent, SWT.NONE);
 
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 3;
 		gridLayout.marginHeight = 0;
-		statusBar.setLayout(gridLayout);
+		status_bar.setLayout(gridLayout);
 
-		file_encoding_label = new Label(statusBar, SWT.LEFT);
+		file_encoding_label = new Label(status_bar, SWT.LEFT);
 		GridData encodingGridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_CENTER);
 		encodingGridData.widthHint = 100;
 		file_encoding_label.setLayoutData(encodingGridData);
 
-		Label separator = new Label(statusBar, SWT.SEPARATOR | SWT.VERTICAL);
+		Label separator = new Label(status_bar, SWT.SEPARATOR | SWT.VERTICAL);
 		separator.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		line_ending_label = new Label(statusBar, SWT.LEFT);
+		line_ending_label = new Label(status_bar, SWT.LEFT);
 		GridData breakGridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_CENTER);
 		breakGridData.widthHint = 40;
 		line_ending_label.setLayoutData(breakGridData);
 
 		fillComp();
-		return statusBar;
+		return status_bar;
 	}
 
-	private void addEncodingList(String encoding) {
+	private void addFileEncodingItem(String encoding) {
 		if (encoding != null) {
-			for (String e : encodingList) {
+			for (String e : file_encoding_list) {
 				if (EncodingUtil.areCharsetsEqual(e, encoding)) {
 					return;
 				}
 			}
-			encodingList.add(encoding);
-			Collections.sort(encodingList);
+			file_encoding_list.add(encoding);
+			Collections.sort(file_encoding_list);
 		}
 	}
 
@@ -94,27 +108,26 @@ public class FileEncodingInfoControlContribution extends
 
 		// Get the encoding information of the active document.
 		IActiveDocumentAgentHandler handler = agent.getHandler();
+
 		current_file_encoding = handler.getEncoding();
-
 		file_encoding_label.setText(current_file_encoding == null ? "" : current_file_encoding);
-		String lineBreak = handler.getLineEnding();
-		line_ending_label.setText(lineBreak == null ? "" : lineBreak);
 
-		if (handler.enableChangeEncoding()) {
+		if (handler.isFileEncodingChangeable()) {
 
-			encodingList = IDEEncoding.getIDEEncodings();
-			addEncodingList(current_file_encoding);
-			addEncodingList(handler.getContainerEncoding());
-			addEncodingList(handler.getDetectedEncoding());
+			file_encoding_list = IDEEncoding.getIDEEncodings();
+			addFileEncodingItem(current_file_encoding);
+			addFileEncodingItem(handler.getContainerEncoding());
+			addFileEncodingItem(handler.getDetectedEncoding());
 
-			boolean isListenerAdded = true;
+			boolean isFileEncodingMenuAdded = true;
 			if (file_encoding_popup_menu == null) {
 				file_encoding_popup_menu = new Menu(file_encoding_label);
-				isListenerAdded = false;
+				isFileEncodingMenuAdded = false;
 			}
 			file_encoding_label.setMenu(file_encoding_popup_menu);
 			file_encoding_label.setToolTipText(String.format("Right-click to change the encoding of '%s'", handler.getName()));
-			if (!isListenerAdded) {
+
+			if (!isFileEncodingMenuAdded) {
 
 				// Add the menu items dynamically.
 				file_encoding_popup_menu.addMenuListener(new MenuAdapter() {
@@ -132,7 +145,7 @@ public class FileEncodingInfoControlContribution extends
 						IActiveDocumentAgentHandler handler = agent.getHandler();
 
 						// Add menu items.
-						for (final String encoding : encodingList) {
+						for (final String encoding : file_encoding_list) {
 
 							final MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.RADIO);
 							final boolean isContainerEncoding = encoding.equals(handler.getContainerEncoding());
@@ -149,16 +162,17 @@ public class FileEncodingInfoControlContribution extends
 							if (isContentTypeEncoding) {
 								sb.append(String.format("Content Type"));
 							}
-							String label = encoding;
+							String menuText = encoding;
 							if (sb.length() > 0) {
-								label += " (" + sb.toString().replaceFirst(", $", "") + ")";
+								menuText += " (" + sb.toString().replaceFirst(", $", "") + ")";
 							}
-							item.setText(label);
+							item.setText(menuText);
 
 							item.setEnabled(!is_document_dirty);
 							if (EncodingUtil.areCharsetsEqual(encoding, current_file_encoding)) {
 								item.setSelection(true);
 							}
+
 							item.addSelectionListener(new SelectionAdapter() {
 								@Override
 								public void widgetSelected(SelectionEvent e) {
@@ -182,6 +196,71 @@ public class FileEncodingInfoControlContribution extends
 			file_encoding_label.setMenu(null);
 			file_encoding_label.setToolTipText(null);
 		}
+
+		current_line_ending = handler.getLineEnding();
+		line_ending_label.setText(current_line_ending == null ? "" : current_line_ending);
+
+		if (handler.isLineEndingChangeable()) {
+
+			if (line_ending_list == null) {
+				line_ending_list = new ArrayList<LineEndingItem>();
+				line_ending_list.add(new LineEndingItem("CRLF", "(\\r\\n, 0D0A, Windows)"));
+				line_ending_list.add(new LineEndingItem("CR", "(\\r, 0D)"));
+				line_ending_list.add(new LineEndingItem("LF", "(\\n, 0A, Unix)"));
+			}
+
+			boolean isLineEndingMenuAdded = true;
+			if (line_ending_popup_menu == null) {
+				line_ending_popup_menu = new Menu(line_ending_label);
+				isLineEndingMenuAdded = false;
+			}
+			line_ending_label.setMenu(line_ending_popup_menu);
+			line_ending_label.setToolTipText(String.format("Right-click to change the line ending of '%s'", handler.getName()));
+
+			if (!isLineEndingMenuAdded) {
+
+				// Add the menu items dynamically.
+				line_ending_popup_menu.addMenuListener(new MenuAdapter() {
+					@Override
+					public void menuShown(MenuEvent e) {
+
+						// Remove existing menu items.
+						for (MenuItem item: line_ending_popup_menu.getItems()) item.dispose();
+						// Do not allow changing encoding when the document is dirty.
+						boolean is_document_dirty = FileEncodingInfoControlContribution.this.agent.isDocumentDirty();
+						if (is_document_dirty) {
+							MenuItem item = new MenuItem(line_ending_popup_menu, SWT.NONE);
+							item.setText(String.format("Please save the document first."));
+						}
+
+						// Add menu items.
+						for (final LineEndingItem lineEndingItem : line_ending_list) {
+
+							final MenuItem item = new MenuItem(line_ending_popup_menu, SWT.RADIO);
+							item.setText(lineEndingItem.value + " " + lineEndingItem.desc);
+							item.setEnabled(!is_document_dirty);
+							if (lineEndingItem.value.equals(current_line_ending)) {
+								item.setSelection(true);
+							}
+
+							item.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									if (item.getSelection()) {
+										IActiveDocumentAgentHandler handler = agent.getHandler();
+										handler.setLineEnding(lineEndingItem.value);
+									}
+								}
+							});
+						}
+					}
+				});
+			}
+
+		} else {
+			line_ending_label.setMenu(null);
+			line_ending_label.setToolTipText(null);
+		}
 	}
 
 	@Override
@@ -203,6 +282,7 @@ public class FileEncodingInfoControlContribution extends
 	 * Like after the user switches to another editor.
 	 */
 	public void encodingInfoChanged() {
+
 		// Cannot make resize work, need to call createControl() again.
 		// Do update in the UI thread.
 		Display.getDefault().asyncExec(new Runnable() {
@@ -211,7 +291,7 @@ public class FileEncodingInfoControlContribution extends
 				IContributionManager manager = getParent();
 				if (manager != null) {
 					manager.update(true);
-				} else if (!statusBar.isDisposed()) {
+				} else if (!status_bar.isDisposed()) {
 					fillComp();
 				}
 			}
