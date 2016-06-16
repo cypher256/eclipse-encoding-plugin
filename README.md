@@ -8,8 +8,8 @@ Line ending support showing CRLF, CR, LF and Mixed, can also be changed.
 **Change "Text File Encoding" setting by file property**  
 To add the encoding, use Preference > General > Workspace > Text File Encoding > Other.  
 ![](image/encoding_select.jpg)  
-Inheritance: Inherited from folder or project properties, workspace preferences  
 Autodetect: Automatic detection by juniversalchardet  
+Inheritance: Inherited from folder or project properties, workspace preferences  
 Content Type: Determined from content type setting  
 
 ## Installation
