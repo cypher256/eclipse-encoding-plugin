@@ -43,6 +43,7 @@ interface IActiveDocumentAgentHandler {
 	// ADD S.Kashihara
 	String getContainerEncoding();
 	String getDetectedEncoding();
+	String getContentTypeEncoding();
 	String getLineEnding();
 	boolean enableChangeEncoding();
 }

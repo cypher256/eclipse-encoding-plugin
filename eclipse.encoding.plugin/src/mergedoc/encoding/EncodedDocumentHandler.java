@@ -122,6 +122,7 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 
 	protected String containerEncoding;
 	protected String detectedEncoding;
+	protected String contentTypeEncoding;
 	protected String lineEnding;
 
 	@Override
@@ -131,6 +132,10 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 	@Override
 	public String getDetectedEncoding() {
 		return detectedEncoding;
+	}
+	@Override
+	public String getContentTypeEncoding() {
+		return contentTypeEncoding;
 	}
 	@Override
 	public String getLineEnding() {

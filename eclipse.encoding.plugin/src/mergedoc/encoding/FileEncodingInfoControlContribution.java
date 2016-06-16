@@ -136,17 +136,24 @@ public class FileEncodingInfoControlContribution extends
 
 							final MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.RADIO);
 							final boolean isContainerEncoding = encoding.equals(handler.getContainerEncoding());
-							boolean isDetected = EncodingUtil.areCharsetsEqual(encoding, handler.getDetectedEncoding());
+							boolean isDetectedEncoding = EncodingUtil.areCharsetsEqual(encoding, handler.getDetectedEncoding());
+							final boolean isContentTypeEncoding = encoding.equals(handler.getContentTypeEncoding());
 
-							if (isDetected && isContainerEncoding) {
-								item.setText(String.format("%s (Autodetect, Inheritance)", encoding));
-							} else if (isDetected) {
-								item.setText(String.format("%s (Autodetect)", encoding));
-							} else if (isContainerEncoding) {
-								item.setText(String.format("%s (Inheritance)", encoding));
-							} else {
-								item.setText(encoding);
+							StringBuilder sb = new StringBuilder();
+							if (isDetectedEncoding) {
+								sb.append(String.format("Autodetect")).append(", ");
 							}
+							if (isContainerEncoding) {
+								sb.append(String.format("Inheritance")).append(", ");
+							}
+							if (isContentTypeEncoding) {
+								sb.append(String.format("Content Type"));
+							}
+							String label = encoding;
+							if (sb.length() > 0) {
+								label += " (" + sb.toString().replaceFirst(", $", "") + ")";
+							}
+							item.setText(label);
 
 							item.setEnabled(!is_document_dirty);
 							if (EncodingUtil.areCharsetsEqual(encoding, current_file_encoding)) {
@@ -157,9 +164,10 @@ public class FileEncodingInfoControlContribution extends
 								public void widgetSelected(SelectionEvent e) {
 									if (item.getSelection()) {
 										IActiveDocumentAgentHandler handler = agent.getHandler();
+
 										// Set the charset.
-										if (isContainerEncoding) {
-											handler.setEncoding(null);
+										if (isContentTypeEncoding || (isContainerEncoding && handler.getContentTypeEncoding() == null)) {
+											handler.setEncoding(null); // Inheritance
 										} else {
 											handler.setEncoding(encoding);
 										}

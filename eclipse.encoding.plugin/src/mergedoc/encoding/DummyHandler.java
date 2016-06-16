@@ -39,6 +39,10 @@ class DummyHandler implements IActiveDocumentAgentHandler {
 		return null;
 	}
 	@Override
+	public String getContentTypeEncoding() {
+		return null;
+	}
+	@Override
 	public String getLineEnding() {
 		return null;
 	}

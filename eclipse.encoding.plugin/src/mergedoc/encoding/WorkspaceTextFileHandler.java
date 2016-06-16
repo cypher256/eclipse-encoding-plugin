@@ -2,6 +2,7 @@ package mergedoc.encoding;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 
@@ -48,6 +49,7 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 
 		containerEncoding = null;
 		detectedEncoding = null;
+		contentTypeEncoding = null;
 		lineEnding = null;
 
 		if (text_file != null) {
@@ -57,12 +59,20 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 				// NOP
 			}
 			try {
-				resolveLineEnding(text_file.getContents(true));
+				detectedEncoding = EncodingUtil.detectEncoding(text_file.getContents(true));
 			} catch (Exception e) {
 				// NOP
 			}
 			try {
-				detectedEncoding = EncodingUtil.detectEncoding(text_file.getContents(true));
+				IContentDescription contentDescription = text_file.getContentDescription();
+				if (contentDescription != null) {
+					contentTypeEncoding = contentDescription.getCharset();
+				}
+			} catch (Exception e) {
+				// NOP
+			}
+			try {
+				resolveLineEnding(text_file.getContents(true));
 			} catch (Exception e) {
 				// NOP
 			}
