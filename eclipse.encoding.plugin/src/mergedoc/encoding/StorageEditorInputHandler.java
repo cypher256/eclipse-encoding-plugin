@@ -1,5 +1,7 @@
 package mergedoc.encoding;
 
+import java.io.InputStream;
+
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorPart;
@@ -46,20 +48,19 @@ class StorageEditorInputHandler extends EncodedDocumentHandler {
 		lineEnding = null;
 
 		if (storage != null) {
-			try {
-				resolveLineEnding(storage.getContents());
-			} catch (Exception e) {
-				// NOP
-			}
-			try {
-				detectedEncoding = EncodingUtil.detectEncoding(storage.getContents());
-			} catch (Exception e) {
-				// NOP
-			}
+			lineEnding = EncodingUtil.getLineEnding(getInputStream(), getEncoding());
+			detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
 		}
-
 		// Just assume that the encoding information is updated.
 		return true;
 	}
 
+	@Override
+	protected InputStream getInputStream() {
+		try {
+			return storage.getContents();
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 }

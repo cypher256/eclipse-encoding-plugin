@@ -106,7 +106,6 @@ public class FileEncodingInfoControlContribution extends
 	@SuppressWarnings("unchecked")
 	private void fillComp() {
 
-		// Get the encoding information of the active document.
 		IActiveDocumentAgentHandler handler = agent.getHandler();
 
 		current_file_encoding = handler.getEncoding();
@@ -137,14 +136,44 @@ public class FileEncodingInfoControlContribution extends
 						// Remove existing menu items.
 						for (MenuItem item: file_encoding_popup_menu.getItems()) item.dispose();
 						// Do not allow changing encoding when the document is dirty.
-						boolean is_document_dirty = FileEncodingInfoControlContribution.this.agent.isDocumentDirty();
+						boolean is_document_dirty = agent.isDocumentDirty();
 						if (is_document_dirty) {
 							MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 							item.setText(String.format("Please save the document first."));
 						}
 						IActiveDocumentAgentHandler handler = agent.getHandler();
 
-						// Add menu items.
+						// Create convert menu items.
+						if (handler.isContentChangeable()) {
+
+							MenuItem convertParentItem = new MenuItem(file_encoding_popup_menu, SWT.CASCADE);
+							convertParentItem.setText("Convert Charset to");
+							convertParentItem.setEnabled(!is_document_dirty);
+							convertParentItem.setImage(Activator.getImage("convert"));
+
+							Menu convertMenu = new Menu(convertParentItem);
+							convertParentItem.setMenu(convertMenu);
+
+							for (final String encoding : file_encoding_list) {
+								if (EncodingUtil.areCharsetsEqual(encoding, current_file_encoding)) {
+									continue;
+								}
+								final MenuItem item = new MenuItem(convertMenu, SWT.NONE);
+								item.setText(encoding);
+								item.setImage(EncodingUtil.getCountryImage(encoding));
+
+								item.addSelectionListener(new SelectionAdapter() {
+									@Override
+									public void widgetSelected(SelectionEvent e) {
+										IActiveDocumentAgentHandler handler = agent.getHandler();
+										handler.convertCharset(encoding);
+									}
+								});
+							}
+							new MenuItem(file_encoding_popup_menu, SWT.SEPARATOR);
+						}
+
+						// Create encoding menu items.
 						for (final String encoding : file_encoding_list) {
 
 							final MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.RADIO);
@@ -172,6 +201,7 @@ public class FileEncodingInfoControlContribution extends
 							if (EncodingUtil.areCharsetsEqual(encoding, current_file_encoding)) {
 								item.setSelection(true);
 							}
+							item.setImage(EncodingUtil.getCountryImage(encoding));
 
 							item.addSelectionListener(new SelectionAdapter() {
 								@Override
@@ -200,7 +230,7 @@ public class FileEncodingInfoControlContribution extends
 		current_line_ending = handler.getLineEnding();
 		line_ending_label.setText(current_line_ending == null ? "" : current_line_ending);
 
-		if (handler.isLineEndingChangeable()) {
+		if (handler.isContentChangeable()) {
 
 			if (line_ending_list == null) {
 				line_ending_list = new ArrayList<LineEndingItem>();
@@ -215,7 +245,7 @@ public class FileEncodingInfoControlContribution extends
 				isLineEndingMenuAdded = false;
 			}
 			line_ending_label.setMenu(line_ending_popup_menu);
-			line_ending_label.setToolTipText(String.format("Right-click to change the line ending of '%s'", handler.getName()));
+			line_ending_label.setToolTipText(String.format("Right-click to convert the line ending of '%s'", handler.getName()));
 
 			if (!isLineEndingMenuAdded) {
 
@@ -227,7 +257,7 @@ public class FileEncodingInfoControlContribution extends
 						// Remove existing menu items.
 						for (MenuItem item: line_ending_popup_menu.getItems()) item.dispose();
 						// Do not allow changing encoding when the document is dirty.
-						boolean is_document_dirty = FileEncodingInfoControlContribution.this.agent.isDocumentDirty();
+						boolean is_document_dirty = agent.isDocumentDirty();
 						if (is_document_dirty) {
 							MenuItem item = new MenuItem(line_ending_popup_menu, SWT.NONE);
 							item.setText(String.format("Please save the document first."));
@@ -242,6 +272,7 @@ public class FileEncodingInfoControlContribution extends
 							if (lineEndingItem.value.equals(current_line_ending)) {
 								item.setSelection(true);
 							}
+							item.setImage(Activator.getImage(lineEndingItem.value));
 
 							item.addSelectionListener(new SelectionAdapter() {
 								@Override
