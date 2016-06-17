@@ -139,7 +139,7 @@ public class FileEncodingInfoControlContribution extends
 						boolean is_document_dirty = agent.isDocumentDirty();
 						if (is_document_dirty) {
 							MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
-							item.setText(String.format("Please save the document first."));
+							item.setText("Please save the document first.");
 						}
 						IActiveDocumentAgentHandler handler = agent.getHandler();
 
@@ -260,7 +260,7 @@ public class FileEncodingInfoControlContribution extends
 						boolean is_document_dirty = agent.isDocumentDirty();
 						if (is_document_dirty) {
 							MenuItem item = new MenuItem(line_ending_popup_menu, SWT.NONE);
-							item.setText(String.format("Please save the document first."));
+							item.setText("Please save the document first.");
 						}
 
 						// Add menu items.
