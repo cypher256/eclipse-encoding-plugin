@@ -1,12 +1,8 @@
 package mergedoc.encoding;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
@@ -148,53 +144,21 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 		return false;
 	}
 	@Override
-	public boolean isLineEndingChangeable() {
+	public boolean isContentChangeable() {
 		return false;
 	}
 
-	protected void resolveLineEnding(InputStream is) throws IOException {
-
-		try {
-			InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), encoding);
-			StringBuilder sb = new StringBuilder();
-			char[] buff = new char[4096];
-			int read;
-			while((read = reader.read(buff)) != -1) {
-			    sb.append(buff, 0, read);
-			    if (sb.length() >= buff.length) {
-			    	break;
-			    }
-			}
-			String s = sb.toString();
-			boolean crlf = s.contains("\r\n");
-			if (crlf) {
-				s = s.replaceAll("\\r\\n", "");
-			}
-			boolean cr = s.contains("\r");
-			boolean lf = s.contains("\n");
-
-			if (crlf && !cr && !lf) {
-				lineEnding = "CRLF";
-			} else if (!crlf && cr && !lf) {
-				lineEnding = "CR";
-			} else if (!crlf && !cr && lf) {
-				lineEnding = "LF";
-			} else if (!crlf && !cr && !lf) {
-				lineEnding = null;
-			} else {
-				lineEnding = "Mixed";
-			}
-		} finally {
-			is.close();
-		}
-	}
-
-	protected InputStream getInputStream() throws CoreException {
+	protected InputStream getInputStream() {
 		throw new UnsupportedOperationException("Not implements getInputStream method.");
 	}
 
 	@Override
 	public void setLineEnding(String newLineEnding) {
 		throw new UnsupportedOperationException("Not implements setLineEnding method.");
+	}
+
+	@Override
+	public void convertCharset(String encoding) {
+		throw new UnsupportedOperationException("Not implements changeCharset method.");
 	}
 }

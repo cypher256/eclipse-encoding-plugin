@@ -46,6 +46,7 @@ interface IActiveDocumentAgentHandler {
 	String getContentTypeEncoding();
 	String getLineEnding();
 	boolean isFileEncodingChangeable();
-	boolean isLineEndingChangeable();
+	boolean isContentChangeable();
 	void setLineEnding(String lineEnding);
+	void convertCharset(String encoding);
 }

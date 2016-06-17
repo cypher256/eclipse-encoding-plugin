@@ -4,6 +4,7 @@ import java.io.InputStream;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ide.FileStoreEditorInput;
@@ -27,8 +28,7 @@ class NonWorkspaceTextFileHandler extends EncodedDocumentHandler {
 		try {
 			text_file_store = EFS.getStore(((FileStoreEditorInput) part.getEditorInput()).getURI());
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new IllegalStateException(e);
 		}
 
 		updateEncodingInfoPrivately();
@@ -61,24 +61,20 @@ class NonWorkspaceTextFileHandler extends EncodedDocumentHandler {
 		lineEnding = null;
 
 		if (text_file_store != null) {
-			try {
-				resolveLineEnding(getInputStream());
-			} catch (Exception e) {
-				// NOP
-			}
-			try {
-				detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
-			} catch (Exception e) {
-				// NOP
-			}
+			containerEncoding = ResourcesPlugin.getEncoding();
+			detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
+			lineEnding = EncodingUtil.getLineEnding(getInputStream(), getEncoding());
 		}
-
 		// Just assume that the encoding information is updated.
 		return true;
 	}
 
 	@Override
-	protected InputStream getInputStream() throws CoreException {
-		return text_file_store.openInputStream(EFS.NONE, null);
+	protected InputStream getInputStream() {
+		try {
+			return text_file_store.openInputStream(EFS.NONE, null);
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 }

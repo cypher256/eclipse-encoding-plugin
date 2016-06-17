@@ -72,10 +72,14 @@ class DummyHandler implements IActiveDocumentAgentHandler {
 		return false;
 	}
 	@Override
-	public boolean isLineEndingChangeable() {
+	public boolean isContentChangeable() {
 		return false;
 	}
 	@Override
 	public void setLineEnding(String lineEnding) {
+	}
+
+	@Override
+	public void convertCharset(String encoding) {
 	}
 }

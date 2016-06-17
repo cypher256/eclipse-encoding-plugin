@@ -1,12 +1,12 @@
 package mergedoc.encoding;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
+import org.eclipse.swt.graphics.Image;
 import org.mozilla.universalchardet.UniversalDetector;
 
 /**
@@ -15,6 +15,9 @@ import org.mozilla.universalchardet.UniversalDetector;
  * @author Shinji Kashihara
  */
 public class EncodingUtil {
+
+	private EncodingUtil() {
+	}
 
 	/**
 	 * Check whether two charset strings really mean the same thing.
@@ -26,7 +29,6 @@ public class EncodingUtil {
 	 */
 	public static boolean areCharsetsEqual(String a, String b) {
 		if (a == null || b == null) return false;
-
 		try {
 			return Charset.forName(a).name().equals(Charset.forName(b).name());
 		} catch (IllegalArgumentException e) {
@@ -35,77 +37,108 @@ public class EncodingUtil {
 	}
 
 	/**
-	 * Detect the possible charsets of an input stream using ICU.
+	 * Detect the possible charsets of an input stream using juniversalchardet.
 	 * @param in The input stream, should close the stream before return.
 	 * @return the detected charsets or null.
 	 */
 	public static String detectEncoding(InputStream in) {
 		if (in != null) {
+			InputStream bin = new BufferedInputStream(in);
 			try {
-				InputStream bin = new BufferedInputStream(in);
-				try {
-					UniversalDetector detector = new UniversalDetector(null);
-					byte[] buf = new byte[4096];
-					int nread;
-					while ((nread = in.read(buf)) > 0 && !detector.isDone()) {
-						detector.handleData(buf, 0, nread);
-					}
-					detector.dataEnd();
-					String encoding = detector.getDetectedCharset();
-					if (encoding != null) {
-						encoding = Charset.forName(encoding).name();
+				UniversalDetector detector = new UniversalDetector(null);
+				byte[] buf = new byte[4096];
+				int nread;
+				while ((nread = in.read(buf)) > 0 && !detector.isDone()) {
+					detector.handleData(buf, 0, nread);
+				}
+				detector.dataEnd();
+				String encoding = detector.getDetectedCharset();
+				if (encoding != null) {
+					encoding = Charset.forName(encoding).name();
 
-						// to java.lang API canonical name (not java.io API) for Japanese
-						if (areCharsetsEqual(encoding, "Shift_JIS") || areCharsetsEqual(encoding, "MS932")) {
-							encoding = "MS932";
-						}
+					// to java.lang API canonical name (not java.io API) for Japanese
+					if (areCharsetsEqual(encoding, "Shift_JIS") || areCharsetsEqual(encoding, "MS932")) {
+						encoding = "MS932";
 					}
-					return encoding;
 				}
-				finally {
-					bin.close();
-				}
+				return encoding;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new IllegalStateException(e);
+			} finally {
+				IOUtil.closeQuietly(bin);
 			}
 		}
 		return null;
 	}
 
-	/**
-	 * Check whether an input stream can be decoded by an encoding.
-	 * @param in The input stream, should close the stream before return.
-	 * @return true/false.
-	 */
-	public static boolean isDecodable(InputStream in, String encoding) {
-		if (in != null) {
-			try {
-				try {
-					if (encoding != null) {
-						ByteArrayOutputStream out = new ByteArrayOutputStream();
-						byte[] buffer = new byte[4096];
-						int len;
-						while((len = in.read(buffer)) > 0) {
-							out.write(buffer, 0, len);
-						}
-
-						// Try to decode the input stream using the encoding.
-						try {
-							Charset.forName(encoding).newDecoder().decode(ByteBuffer.wrap(out.toByteArray()));
-							return true;
-						} catch (IOException e) {
-						}
-					}
-				}
-				finally {
-					in.close();
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+	public static String getLineEnding(InputStream is, String encoding) {
+		try {
+			// Parse first 4096 char length only
+			InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), encoding);
+			StringBuilder sb = new StringBuilder();
+			char[] buff = new char[4096];
+			int read;
+			while((read = reader.read(buff)) != -1) {
+			    sb.append(buff, 0, read);
+			    if (sb.length() >= buff.length) {
+			    	break;
+			    }
 			}
+			String s = sb.toString();
+			boolean crlf = s.contains("\r\n");
+			if (crlf) {
+				s = s.replaceAll("\\r\\n", "");
+			}
+			boolean cr = s.contains("\r");
+			boolean lf = s.contains("\n");
+
+			if (crlf && !cr && !lf) {
+				return "CRLF";
+			} else if (!crlf && cr && !lf) {
+				return "CR";
+			} else if (!crlf && !cr && lf) {
+				return "LF";
+			} else if (!crlf && !cr && !lf) {
+				return null;
+			} else {
+				return "Mixed";
+			}
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		} finally {
+			IOUtil.closeQuietly(is);
 		}
-		return false;
+	}
+
+	public static Image getCountryImage(String encoding) {
+		String name = Charset.forName(encoding).name().toLowerCase();
+		if (name.contains("utf")) {
+			return Activator.getImage("unicode");
+		}
+		if (name.equals("windows-31j") || name.contains("jp") || name.contains("jis")) {
+			return Activator.getImage("japan");
+		}
+		if (name.contains("big5") || name.startsWith("gb") || name.contains("cn")) {
+			return Activator.getImage("china");
+		}
+		if (name.endsWith("kr")) {
+			return Activator.getImage("korea");
+		}
+		if (name.equals("us-ascii")) {
+			return Activator.getImage("us");
+		}
+		if (name.contains("1253")) {
+			return Activator.getImage("greece");
+		}
+		if (name.contains("1254")) {
+			return Activator.getImage("turkey");
+		}
+		if (name.contains("1258")) {
+			return Activator.getImage("vietnam");
+		}
+		if (name.contains("8859") || name.contains("1252")) {
+			return Activator.getImage("latin");
+		}
+		return null;
 	}
 }
