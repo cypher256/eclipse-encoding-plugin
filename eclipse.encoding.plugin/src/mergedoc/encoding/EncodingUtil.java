@@ -110,34 +110,43 @@ public class EncodingUtil {
 		}
 	}
 
-	public static Image getCountryImage(String encoding) {
+	public static Image getImage(String encoding) {
 		String name = Charset.forName(encoding).name().toLowerCase();
-		if (name.contains("utf")) {
-			return Activator.getImage("unicode");
-		}
 		if (name.equals("windows-31j") || name.contains("jp") || name.contains("jis")) {
 			return Activator.getImage("japan");
 		}
-		if (name.contains("big5") || name.startsWith("gb") || name.contains("cn")) {
+		if (name.contains("big5") || name.startsWith("gb") || name.contains("cn") || name.contains("950")) {
 			return Activator.getImage("china");
 		}
-		if (name.endsWith("kr")) {
+		if (name.endsWith("kr") || name.contains("949")) {
 			return Activator.getImage("korea");
 		}
 		if (name.equals("us-ascii")) {
 			return Activator.getImage("us");
 		}
+		if (name.contains("1252") || name.contains("8859")) {
+			return Activator.getImage("latin");
+		}
 		if (name.contains("1253")) {
 			return Activator.getImage("greece");
 		}
-		if (name.contains("1254")) {
+		if (name.contains("1254") || name.contains("857")) {
 			return Activator.getImage("turkey");
 		}
 		if (name.contains("1258")) {
 			return Activator.getImage("vietnam");
 		}
-		if (name.contains("8859") || name.contains("1252")) {
-			return Activator.getImage("latin");
+		if (name.contains("windows")) {
+			return Activator.getImage("windows");
+		}
+		if (name.contains("mac")) {
+			return Activator.getImage("mac");
+		}
+		if (name.contains("ibm")) {
+			return Activator.getImage("ibm");
+		}
+		if (name.contains("utf")) {
+			return Activator.getImage("unicode");
 		}
 		return null;
 	}

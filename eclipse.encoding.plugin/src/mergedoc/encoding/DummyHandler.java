@@ -72,7 +72,7 @@ class DummyHandler implements IActiveDocumentAgentHandler {
 		return false;
 	}
 	@Override
-	public boolean isContentChangeable() {
+	public boolean isContentWriteable() {
 		return false;
 	}
 	@Override
