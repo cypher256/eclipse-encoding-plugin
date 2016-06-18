@@ -144,7 +144,7 @@ class EncodedDocumentHandler implements IActiveDocumentAgentHandler {
 		return false;
 	}
 	@Override
-	public boolean isContentChangeable() {
+	public boolean isContentWriteable() {
 		return false;
 	}
 

@@ -38,7 +38,7 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 		return true;
 	}
 	@Override
-	public boolean isContentChangeable() {
+	public boolean isContentWriteable() {
 		return lineEnding != null;
 	}
 
