@@ -12,6 +12,9 @@ Autodetect: Automatic detection by juniversalchardet
 Inheritance: Inherited from folder or project properties, workspace preferences  
 Content Type: Determined from content type setting  
 
+**Encoding Preferences Shortcut**  
+![](image/preference.jpg)  
+
 ## Installation
 **Eclipse Marketplace**  
 https://marketplace.eclipse.org/content/encoding-statusbar  
