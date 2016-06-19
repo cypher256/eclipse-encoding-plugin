@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.ide.IDEEncoding;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 
@@ -148,8 +149,74 @@ public class FileEncodingInfoControlContribution extends
 							MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 							item.setText("Please save the document first.");
 						}
-						IActiveDocumentAgentHandler handler = agent.getHandler();
 
+						MenuItem prefParentItem = new MenuItem(file_encoding_popup_menu, SWT.CASCADE);
+						prefParentItem.setText("Preferences");
+						prefParentItem.setImage(Activator.getImage("preference"));
+						Menu prefMenu = new Menu(prefParentItem);
+						prefParentItem.setMenu(prefMenu);
+
+						// Menu for Open Woekspace Preferences
+						{
+							MenuItem item = new MenuItem(prefMenu, SWT.NONE);
+							item.setText("Workspace Preferences...");
+							item.setImage(Activator.getImage("workspace"));
+							item.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									PreferencesUtil.createPreferenceDialogOn(Display.getDefault().getActiveShell(),
+										"org.eclipse.ui.preferencePages.Workspace", null, null).open();
+								}
+							});
+						}
+
+						if (agent.getHandler() instanceof WorkspaceTextFileHandler) {
+							// Menu for Open Project Properties
+							{
+								MenuItem item = new MenuItem(prefMenu, SWT.NONE);
+								item.setText("Project Properties...");
+								item.setImage(Activator.getImage("project"));
+								item.addSelectionListener(new SelectionAdapter() {
+									@Override
+									public void widgetSelected(SelectionEvent e) {
+										PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
+											((WorkspaceTextFileHandler) agent.getHandler()).getFile().getProject(),
+											"org.eclipse.ui.propertypages.info.file", null, null).open();
+									}
+								});
+							}
+							// Menu for Open File Properties
+							{
+								MenuItem item = new MenuItem(prefMenu, SWT.NONE);
+								item.setText("File Properties...");
+								item.setImage(Activator.getImage("file"));
+								item.addSelectionListener(new SelectionAdapter() {
+									@Override
+									public void widgetSelected(SelectionEvent e) {
+										PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
+											((WorkspaceTextFileHandler) agent.getHandler()).getFile(),
+											"org.eclipse.ui.propertypages.info.file", null, null).open();
+									}
+								});
+							}
+						}
+
+						// Menu for Open Content Type Preferences
+						{
+							MenuItem item = new MenuItem(prefMenu, SWT.NONE);
+							item.setText("Content Types Preferences...");
+							item.setImage(Activator.getImage("content"));
+							item.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									PreferencesUtil.createPreferenceDialogOn(Display.getDefault().getActiveShell(),
+										"org.eclipse.ui.preferencePages.ContentTypes", null, null).open();
+								}
+							});
+						}
+
+						// Create encoding menu meta data
+						IActiveDocumentAgentHandler handler = agent.getHandler();
 						List<FileEncodingItem> encodingList = new ArrayList<FileEncodingItem>();
 						for (final String encoding : file_encoding_list) {
 
@@ -191,7 +258,7 @@ public class FileEncodingInfoControlContribution extends
 								if (EncodingUtil.areCharsetsEqual(i.encoding, current_file_encoding)) {
 									continue;
 								}
-								final MenuItem item = new MenuItem(convertMenu, SWT.NONE);
+								MenuItem item = new MenuItem(convertMenu, SWT.NONE);
 								item.setText(i.menuText);
 								item.setImage(EncodingUtil.getImage(i.encoding));
 
