@@ -41,6 +41,9 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 	public boolean isContentWriteable() {
 		return lineEnding != null;
 	}
+	public IFile getFile() {
+		return text_file;
+	}
 
 	/**
 	 * Update the encoding information in member variables.
