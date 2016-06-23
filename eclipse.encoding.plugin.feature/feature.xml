@@ -2,7 +2,7 @@
 <feature
       id="eclipse.encoding.plugin.feature"
       label="Encoding StatusBar"
-      version="1.4.0.qualifier"
+      version="1.4.1.qualifier"
       provider-name="Shinji Kashihara">
 
    <description url="https://github.com/cypher256/eclipse-encoding-plugin">
@@ -104,7 +104,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </license>
 
    <url>
-      <update label="Encoding StatusBar Update Site" url="https://raw.githubusercontent.com/cypher256/eclipse-encoding-plugin/master/eclipse.encoding.plugin.update/site.xml"/>
+      <update label="Encoding StatusBar Update Site" url="http://cypher256.github.io/eclipse-encoding-plugin/"/>
    </url>
 
    <plugin
