@@ -1,9 +1,11 @@
 package mergedoc.encoding;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 
 import org.eclipse.swt.graphics.Image;
@@ -56,7 +58,7 @@ public class EncodingUtil {
 				if (encoding != null) {
 					encoding = Charset.forName(encoding).name();
 
-					// to java.lang API canonical name (not java.io API) for Japanese
+					// to java.lang API canonical name (not java.nio API) for Japanese
 					if (areCharsetsEqual(encoding, "Shift_JIS") || areCharsetsEqual(encoding, "MS932")) {
 						encoding = "MS932";
 					}
@@ -69,45 +71,6 @@ public class EncodingUtil {
 			}
 		}
 		return null;
-	}
-
-	public static String getLineEnding(InputStream is, String encoding) {
-		try {
-			// Parse first 4096 char length only
-			InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), encoding);
-			StringBuilder sb = new StringBuilder();
-			char[] buff = new char[4096];
-			int read;
-			while((read = reader.read(buff)) != -1) {
-			    sb.append(buff, 0, read);
-			    if (sb.length() >= buff.length) {
-			    	break;
-			    }
-			}
-			String s = sb.toString();
-			boolean crlf = s.contains("\r\n");
-			if (crlf) {
-				s = s.replaceAll("\\r\\n", "");
-			}
-			boolean cr = s.contains("\r");
-			boolean lf = s.contains("\n");
-
-			if (crlf && !cr && !lf) {
-				return "CRLF";
-			} else if (!crlf && cr && !lf) {
-				return "CR";
-			} else if (!crlf && !cr && lf) {
-				return "LF";
-			} else if (!crlf && !cr && !lf) {
-				return null;
-			} else {
-				return "Mixed";
-			}
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		} finally {
-			IOUtil.closeQuietly(is);
-		}
 	}
 
 	public static Image getImage(String encoding) {
@@ -149,5 +112,51 @@ public class EncodingUtil {
 			return Activator.getImage("unicode");
 		}
 		return null;
+	}
+
+	public static String getLineEnding(InputStream is, String encoding) {
+		try {
+			boolean crlf = false;
+			boolean cr = false;
+			boolean lf = false;
+			int count = 0;
+			final String MIXED = "Mixed";
+
+			Reader reader = new BufferedReader(new InputStreamReader(is, encoding));
+			int i;
+			while((i = reader.read()) != -1) {
+				if (++count > 8192) {
+					// Parse only starts chars for no line ending big file
+					break;
+				}
+				char c = (char) i;
+				if (c == '\r') {
+					char nextChar = (char) reader.read();
+					if (nextChar == '\n') {
+						if (cr || lf) return MIXED;
+						crlf = true;
+					} else {
+						if (crlf || lf) return MIXED;
+						cr = true;
+					}
+				} else if (c == '\n') {
+					if (crlf || cr) return MIXED;
+					lf = true;
+				}
+			}
+			if (crlf) {
+				return "CRLF";
+			} else if (cr) {
+				return "CR";
+			} else if (lf) {
+				return "LF";
+			}
+			return null;
+
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		} finally {
+			IOUtil.closeQuietly(is);
+		}
 	}
 }
