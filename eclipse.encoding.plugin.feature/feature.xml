@@ -13,7 +13,7 @@
       Copyright (c) 2016- Shinji Kashihara and others. All rights reserved.
    </copyright>
 
-   <license url="http://www.eclipse.org/legal/epl-v10.html">
+   <license url="https://www.eclipse.org/legal/epl-v10.html">
       Eclipse Public License - v 1.0
 
 THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC LICENSE (&quot;AGREEMENT&quot;). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENT&apos;S ACCEPTANCE OF THIS AGREEMENT.
@@ -104,7 +104,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </license>
 
    <url>
-      <update label="Encoding StatusBar Update Site" url="http://cypher256.github.io/eclipse-encoding-plugin/"/>
+      <update label="Encoding StatusBar Update Site" url="https://cypher256.github.io/eclipse-encoding-plugin/"/>
    </url>
 
    <plugin
