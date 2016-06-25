@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.graphics.Image;
 import org.mozilla.universalchardet.UniversalDetector;
@@ -57,10 +59,9 @@ public class EncodingUtil {
 				String encoding = detector.getDetectedCharset();
 				if (encoding != null) {
 					encoding = Charset.forName(encoding).name();
-
-					// to java.lang API canonical name (not java.nio API) for Japanese
-					if (areCharsetsEqual(encoding, "Shift_JIS") || areCharsetsEqual(encoding, "MS932")) {
-						encoding = "MS932";
+					String windowsEncoding = windowsEncodingMap.get(encoding.toLowerCase());
+					if (windowsEncoding != null) {
+						encoding = windowsEncoding;
 					}
 				}
 				return encoding;
@@ -73,19 +74,44 @@ public class EncodingUtil {
 		return null;
 	}
 
+	/**
+	 * Windows default encoding mappings.
+	 * key  : java.nio canonical name (java.nio.charset.Charset#name)
+	 * value: java.io  canonical name (Windows Java default encoding name)
+	 */
+	private static final Map<String, String> windowsEncodingMap = new HashMap<String, String>() {{
+		put("shift_jis", "MS932");
+		put("windows-31j", "MS932");
+		put("windows-1250", "Cp1250");
+		put("windows-1251", "Cp1251");
+		put("windows-1252", "Cp1252");
+		put("windows-1253", "Cp1253");
+		put("windows-1254", "Cp1254");
+		put("windows-1255", "Cp1255");
+		put("windows-1256", "Cp1256");
+		put("windows-1257", "Cp1257");
+		put("windows-1258", "Cp1258");
+		put("x-windows-874", "MS874");
+		put("x-windows-949", "MS949");
+		put("x-windows-950", "MS950");
+	}};
+
 	public static Image getImage(String encoding) {
 		String name = Charset.forName(encoding).name().toLowerCase();
 		if (name.equals("windows-31j") || name.contains("jp") || name.contains("jis")) {
 			return Activator.getImage("japan");
 		}
-		if (name.contains("big5") || name.startsWith("gb") || name.contains("cn") || name.contains("950")) {
-			return Activator.getImage("china");
-		}
-		if (name.endsWith("kr") || name.contains("949")) {
-			return Activator.getImage("korea");
-		}
 		if (name.equals("us-ascii")) {
 			return Activator.getImage("us");
+		}
+		if (name.contains("874")) {
+			return Activator.getImage("thai");
+		}
+		if (name.contains("949") || name.endsWith("kr")) {
+			return Activator.getImage("korea");
+		}
+		if (name.contains("950") || name.contains("big5") || name.startsWith("gb") || name.contains("cn")) {
+			return Activator.getImage("china");
 		}
 		if (name.contains("1252") || name.contains("8859")) {
 			return Activator.getImage("latin");

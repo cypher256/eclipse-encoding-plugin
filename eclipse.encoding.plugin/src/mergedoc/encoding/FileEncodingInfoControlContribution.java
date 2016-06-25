@@ -314,7 +314,7 @@ public class FileEncodingInfoControlContribution extends
 		current_line_ending = handler.getLineEnding();
 		line_ending_label.setText(current_line_ending == null ? "" : current_line_ending);
 
-		if (handler.isContentWriteable()) {
+		if (handler.isContentWriteable() && current_line_ending != null) {
 
 			if (line_ending_list == null) {
 				line_ending_list = new ArrayList<LineEndingItem>();

@@ -39,7 +39,7 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 	}
 	@Override
 	public boolean isContentWriteable() {
-		return lineEnding != null;
+		return true;
 	}
 	public IFile getFile() {
 		return text_file;
