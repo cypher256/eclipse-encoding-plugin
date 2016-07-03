@@ -2,7 +2,7 @@
 <feature
       id="eclipse.encoding.plugin.feature"
       label="Encoding StatusBar"
-      version="1.4.2.qualifier"
+      version="1.5.0.qualifier"
       provider-name="Shinji Kashihara">
 
    <description url="https://github.com/cypher256/eclipse-encoding-plugin">

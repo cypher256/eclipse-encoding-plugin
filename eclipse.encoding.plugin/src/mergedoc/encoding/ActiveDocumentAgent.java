@@ -1,6 +1,9 @@
 package mergedoc.encoding;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.dialogs.IPageChangeProvider;
+import org.eclipse.jface.dialogs.IPageChangedListener;
+import org.eclipse.jface.dialogs.PageChangedEvent;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -19,16 +22,16 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
+public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IPageChangedListener {
 
 	// Callback for this agent.
 	private IActiveDocumentAgentCallback callback;
 
 	// The current handler for the agent.
-	private IActiveDocumentAgentHandler current_handler;
+	private ActiveDocumentHandler currentHandler;
 
 	// Indicate whether the agent has started monitoring the encoding of the active document.
-	private boolean is_started = false;
+	private boolean isStarted = false;
 
 	// The IWorkbenchWindow to work on.
 	IWorkbenchWindow window;
@@ -62,126 +65,42 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 * @return true/false
 	 */
 	public boolean isDocumentDirty() {
-		return current_handler == null ? false : (current_handler.getEditor() == null ? false : current_handler.getEditor().isDirty());
+		return currentHandler != null && currentHandler.getEditor() != null && currentHandler.getEditor().isDirty();
 	}
 
-	// ADD S.Kashihara
-	public IActiveDocumentAgentHandler getHandler() {
-		return current_handler;
+	public ActiveDocumentHandler getHandler() {
+		return currentHandler;
 	}
 
 	/**
 	 * Get a handler for an editor.
-	 * @return a specific handler, or DummyHandler if there is no specific handler for an editor.
+	 * @return a specific handler, or NullDocumentHandler if there is no specific handler for an editor.
 	 */
-	private IActiveDocumentAgentHandler getHandler(IEditorPart part) {
+	private ActiveDocumentHandler getHandler(IEditorPart editor) {
 
-		if (part != null) {
-			if (part.getAdapter(IEncodingSupport.class) != null) {
-				if (part instanceof IEditorPart) {
-					IEditorPart editor = (IEditorPart) part;
-					IEditorInput editor_input = editor.getEditorInput();
+		if (editor != null && editor.getAdapter(IEncodingSupport.class) != null) {
+			IEditorInput editorInput = editor.getEditorInput();
 
-					if (editor_input instanceof IFileEditorInput) {
-						return new WorkspaceTextFileHandler(part, callback);
-					}
-					else if (editor_input instanceof FileStoreEditorInput) {
-						return new NonWorkspaceTextFileHandler(part, callback);
-					}
-					else if (editor_input instanceof IStorageEditorInput) {
-						// exclude class file in jar
-						try {
-							return new StorageEditorInputHandler(part, callback);
-						} catch (CoreException e) {
-							e.printStackTrace();
-							// Fallback to EncodedDocumentHandler.
-							return new EncodedDocumentHandler(part, callback);
-						}
-					} else {
-						// class file in jar
-						return new DummyHandler(part, callback);
-					}
+			if (editorInput instanceof IFileEditorInput) {
+				return new WorkspaceTextFileHandler(editor, callback);
+			}
+			else if (editorInput instanceof FileStoreEditorInput) {
+				return new NonWorkspaceTextFileHandler(editor, callback);
+			}
+			else if (editorInput instanceof IStorageEditorInput) {
+				// Non class file resources in jar
+				try {
+					return new StorageEditorInputHandler(editor, callback);
+				} catch (CoreException e) {
+					// Fallback
+					return new ActiveDocumentHandler(editor, callback);
 				}
-				return new EncodedDocumentHandler(part, callback);
+			} else if (editorInput.getClass().getSimpleName().equals("InternalClassFileEditorInput")) {
+				// Class file in jar
+				return new ClassFileEditorInputHandler(editor, callback);
 			}
 		}
-		return new DummyHandler(part, callback);
-	}
-
-	@Override
-	public void propertyChanged(Object source, int propId) {
-		if (propId == IEditorPart.PROP_INPUT) {
-			// The current handler may not be able to handle the new editor input, so get a new handler for the active editor, and invoke the callback.
-			setCurrentHandler(getHandler(getActiveEditor()));
-			callback.encodingInfoChanged();
-		}
-		else {
-			// Pass the event to the handler.
-			current_handler.propertyChanged(source, propId);
-		}
-	}
-
-	@Override
-	public void partActivated(IWorkbenchPart part) {
-		checkActiveEditor();
-	}
-
-	@Override
-	public void partBroughtToTop(IWorkbenchPart part) {
-		checkActiveEditor();
-	}
-
-	@Override
-	public void partClosed(IWorkbenchPart part) {
-		checkActiveEditor();
-	}
-
-	@Override
-	public void partDeactivated(IWorkbenchPart part) {
-		checkActiveEditor();
-	}
-
-	@Override
-	public void partOpened(IWorkbenchPart part) {
-		checkActiveEditor();
-	}
-
-	/**
-	 * Check whether the active editor is changed.
-	 */
-	private void checkActiveEditor() {
-
-		IEditorPart active_editor = getActiveEditor();
-		if (active_editor != current_handler.getEditor()) {
-			// Get a new handler for the active editor, and invoke the callback.
-			setCurrentHandler(getHandler(active_editor));
-			callback.encodingInfoChanged();
-		}
-	}
-
-	/**
-	 * Change the current handler.
-	 * This method helps to add/remove IPropertyListener as needed.
-	 * @param handler
-	 */
-	private void setCurrentHandler(IActiveDocumentAgentHandler handler) {
-
-		if (handler == null) throw new IllegalArgumentException("handler must not be null.");
-
-		// Remove IPropertyListener from the old editor.
-		if (current_handler != null) {
-			IEditorPart editor = current_handler.getEditor();
-			if (editor != null) {
-				editor.removePropertyListener(this);
-			}
-		}
-		current_handler = handler;
-
-		// Add IPropertyListener to the new editor.
-		IEditorPart editor = current_handler.getEditor();
-		if (editor != null) {
-			editor.addPropertyListener(this);
-		}
+		return new NullDocumentHandler(editor, callback);
 	}
 
 	/**
@@ -190,9 +109,9 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 */
 	public void start(IWorkbenchWindow window) {
 
-		if (!is_started) {
+		if (!isStarted) {
 			if (window != null) {
-				is_started = true;
+				isStarted = true;
 				this.window = window;
 
 				// Update the current handler.
@@ -210,7 +129,7 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 	 */
 	public void stop() {
 
-		if (is_started) {
+		if (isStarted) {
 			// Remove listeners.
 			window.getPartService().removePartListener(this);
 
@@ -218,7 +137,97 @@ public class ActiveDocumentAgent implements IPartListener, IPropertyListener {
 			setCurrentHandler(getHandler(null));
 
 			window = null;
-			is_started = false;
+			isStarted = false;
 		}
+	}
+
+	/**
+	 * Change the current handler.
+	 * This method helps to add/remove IPropertyListener as needed.
+	 * @param handler
+	 */
+	private void setCurrentHandler(ActiveDocumentHandler handler) {
+
+		if (handler == null) throw new IllegalArgumentException("handler must not be null.");
+
+		// Remove IPropertyListener from the old editor.
+		if (currentHandler != null) {
+			IEditorPart editor = currentHandler.getEditor();
+			if (editor != null) {
+				editor.removePropertyListener(this);
+			}
+		}
+		currentHandler = handler;
+
+		// Add IPropertyListener to the new editor.
+		IEditorPart editor = currentHandler.getEditor();
+		if (editor != null) {
+			editor.addPropertyListener(this);
+		}
+	}
+
+	/**
+	 * Check whether the active editor is changed.
+	 */
+	private void checkActiveEditor() {
+
+		IEditorPart active_editor = getActiveEditor();
+		if (active_editor != currentHandler.getEditor()) {
+			// Get a new handler for the active editor, and invoke the callback.
+			setCurrentHandler(getHandler(active_editor));
+			callback.encodingInfoChanged();
+		}
+	}
+
+	@Override
+	public void propertyChanged(Object source, int propId) {
+		if (propId == IEditorPart.PROP_INPUT) {
+			// The current handler may not be able to handle the new editor input,
+			// so get a new handler for the active editor, and invoke the callback.
+			setCurrentHandler(getHandler(getActiveEditor()));
+			callback.encodingInfoChanged();
+		}
+		else {
+			// Pass the event to the handler.
+			currentHandler.propertyChanged(source, propId);
+		}
+	}
+
+	@Override
+	public void partActivated(IWorkbenchPart part) {
+		if (part instanceof IPageChangeProvider) {
+			((IPageChangeProvider) part).addPageChangedListener(this);
+		}
+		checkActiveEditor();
+	}
+
+	@Override
+	public void partDeactivated(IWorkbenchPart part) {
+		if (part instanceof IPageChangeProvider) {
+			((IPageChangeProvider) part).removePageChangedListener(this);
+		}
+		checkActiveEditor();
+	}
+
+	@Override
+	public void partBroughtToTop(IWorkbenchPart part) {
+		checkActiveEditor();
+	}
+
+	@Override
+	public void partOpened(IWorkbenchPart part) {
+		checkActiveEditor();
+	}
+
+	@Override
+	public void partClosed(IWorkbenchPart part) {
+		checkActiveEditor();
+	}
+
+	@Override
+	public void pageChanged(PageChangedEvent event) {
+		// MultiPageEditorPart tab changed
+		setCurrentHandler(getHandler(getActiveEditor()));
+		callback.encodingInfoChanged();
 	}
 }

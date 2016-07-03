@@ -141,6 +141,18 @@ public class EncodingUtil {
 	}
 
 	public static String getLineEnding(InputStream is, String encoding) {
+		if (is == null) {
+			return null;
+		}
+		try {
+			Reader reader = new BufferedReader(new InputStreamReader(is, encoding));
+			return getLineEnding(reader);
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	public static String getLineEnding(Reader reader) {
 		try {
 			boolean crlf = false;
 			boolean cr = false;
@@ -148,7 +160,6 @@ public class EncodingUtil {
 			int count = 0;
 			final String MIXED = "Mixed";
 
-			Reader reader = new BufferedReader(new InputStreamReader(is, encoding));
 			int i;
 			while((i = reader.read()) != -1) {
 				if (++count > 8192) {
@@ -182,7 +193,7 @@ public class EncodingUtil {
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			IOUtil.closeQuietly(is);
+			IOUtil.closeQuietly(reader);
 		}
 	}
 }

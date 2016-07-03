@@ -8,7 +8,7 @@
          <toolbar
                id="mergedoc.encoding.toolbars.FileEncodingInfo">
             <control
-                  class="mergedoc.encoding.FileEncodingInfoControlContribution">
+                  class="mergedoc.encoding.EncodingControlContribution">
             </control>
             <command
                   commandId="mergedoc.encoding.commands.fixheight"

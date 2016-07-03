@@ -4,6 +4,8 @@ import java.io.InputStream;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IStorageEditorInput;
 
@@ -13,18 +15,17 @@ import org.eclipse.ui.IStorageEditorInput;
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class StorageEditorInputHandler extends EncodedDocumentHandler {
+class StorageEditorInputHandler extends ActiveDocumentHandler {
 
 	// The storage object associated with the editor.
 	private IStorage storage = null;
 
 	public StorageEditorInputHandler(IEditorPart part, IActiveDocumentAgentCallback callback) throws CoreException {
 		super(part, callback);
-
-		if (!(part.getEditorInput() instanceof IStorageEditorInput)) throw new IllegalArgumentException("part must provide IStorageEditorInput.");
-
+		if (!(part.getEditorInput() instanceof IStorageEditorInput)) {
+			throw new IllegalArgumentException("part must provide IStorageEditorInput.");
+		}
 		storage = ((IStorageEditorInput) part.getEditorInput()).getStorage();
-
 		updateEncodingInfoPrivately();
 	}
 
@@ -43,13 +44,18 @@ class StorageEditorInputHandler extends EncodedDocumentHandler {
 	 */
 	private boolean updateEncodingInfoPrivately() {
 
-		containerEncoding = null;
+		inheritedEncoding = null;
 		detectedEncoding = null;
+		contentTypeEncoding = null;
 		lineEnding = null;
 
 		if (storage != null) {
-			lineEnding = EncodingUtil.getLineEnding(getInputStream(), getEncoding());
 			detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
+			IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());
+			if (contentType != null) {
+				contentTypeEncoding = contentType.getDefaultCharset();
+			}
+			lineEnding = EncodingUtil.getLineEnding(getInputStream(), getCurrentEncoding());
 		}
 		// Just assume that the encoding information is updated.
 		return true;
@@ -60,7 +66,12 @@ class StorageEditorInputHandler extends EncodedDocumentHandler {
 		try {
 			return storage.getContents();
 		} catch (CoreException e) {
-			throw new IllegalStateException(e);
+			// Closed stream
+			return null;
 		}
+	}
+
+	@Override
+	public void showWarnMessage(boolean showsWarn) {
 	}
 }

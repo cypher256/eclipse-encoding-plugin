@@ -1,16 +1,21 @@
 package mergedoc.encoding;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
+import org.eclipse.core.internal.runtime.AdapterManager;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.content.IContentDescription;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.forms.editor.FormEditor;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * This handler handles workspace text file for ActiveDocumentAgent.
@@ -18,31 +23,43 @@ import org.eclipse.ui.IFileEditorInput;
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class WorkspaceTextFileHandler extends EncodedDocumentHandler {
+@SuppressWarnings("restriction")
+class WorkspaceTextFileHandler extends ActiveDocumentHandler {
 
-	// The text file associated with the editor.
-	private IFile text_file;
+	private IFile file;
+	private PackageRoot packageRoot = new PackageRoot();
 
-	public WorkspaceTextFileHandler(IEditorPart part, IActiveDocumentAgentCallback callback) {
-		super(part, callback);
+	public WorkspaceTextFileHandler(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 
-		if (!(part.getEditorInput() instanceof IFileEditorInput)) throw new IllegalArgumentException("part must provide IFileEditorInput.");
+		super(editor, callback);
+		if (!(editor.getEditorInput() instanceof IFileEditorInput)) {
+			throw new IllegalArgumentException("part must provide IFileEditorInput.");
+		}
 
-		text_file = ((IFileEditorInput) part.getEditorInput()).getFile();
-
+		// MultiPartEditor active tab
+		if (editor instanceof FormEditor) {
+			 IEditorPart e = ((FormEditor) editor).getActiveEditor();
+			 if (e instanceof ITextEditor) {
+				 editor = e;
+			 }
+		}
+		file = ((IFileEditorInput) editor.getEditorInput()).getFile();
 		updateEncodingInfoPrivately();
 	}
 
 	@Override
-	public boolean isFileEncodingChangeable() {
-		return true;
+	public IProject getProject() {
+		return file.getProject();
 	}
+
 	@Override
-	public boolean isContentWriteable() {
-		return true;
+	public PackageRoot getPackageRoot() {
+		return packageRoot;
 	}
+
+	@Override
 	public IFile getFile() {
-		return text_file;
+		return file;
 	}
 
 	/**
@@ -60,22 +77,34 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 	 */
 	private boolean updateEncodingInfoPrivately() {
 
-		containerEncoding = null;
+		inheritedEncoding = null;
 		detectedEncoding = null;
 		contentTypeEncoding = null;
 		lineEnding = null;
 
-		if (text_file != null) {
+		packageRoot.element = null;
+		packageRoot.encoding = null;
+
+		if (file != null) {
 			try {
-				containerEncoding = text_file.getParent().getDefaultCharset();
+				inheritedEncoding = file.getParent().getDefaultCharset();
 				detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
-				IContentDescription contentDescription = text_file.getContentDescription();
+				IContentDescription contentDescription = file.getContentDescription();
 				if (contentDescription != null) {
 					contentTypeEncoding = contentDescription.getCharset();
 				}
-				lineEnding = EncodingUtil.getLineEnding(getInputStream(), getEncoding());
+				lineEnding = EncodingUtil.getLineEnding(getInputStream(), getCurrentEncoding());
 
-			} catch (CoreException e) {
+				IEditorInput editorInput = editor.getEditorInput();
+				Object ele = AdapterManager.getDefault().getAdapter(editorInput, "org.eclipse.jdt.core.IJavaElement");
+				if (ele != null) {
+					final int PACKAGE_FRAGMENT_ROOT = 3; // IJavaElement.PACKAGE_FRAGMENT_ROOT
+					packageRoot.element = (IAdaptable) ele.getClass().getMethod("getAncestor", int.class).invoke(ele, PACKAGE_FRAGMENT_ROOT);
+					IContainer c = (IContainer) packageRoot.element.getClass().getMethod("resource").invoke(packageRoot.element);
+					packageRoot.encoding = c.getDefaultCharset(false);
+				}
+
+			} catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -85,64 +114,40 @@ class WorkspaceTextFileHandler extends EncodedDocumentHandler {
 	}
 
 	@Override
+	public boolean canChangeFileEncoding() {
+		return true;
+	}
+	@Override
+	public boolean canConvertCharset() {
+		return true;
+	}
+	@Override
+	public boolean canConvertLineEnding() {
+		return true;
+	}
+	@Override
+	public boolean enabledContentTypeEnding() {
+		return true;
+	}
+
+	@Override
 	protected InputStream getInputStream() {
 		try {
-			return text_file.getContents(true);
+			return file.getContents(true);
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
-	// Note: Process on String, not stream. Unsupport big file.
-	private String getContentString() {
-		InputStream is = null;
-		try {
-			is = getInputStream();
-			InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), getEncoding());
-			StringBuilder sb = new StringBuilder();
-			char[] buff = new char[4096];
-			int read;
-			while((read = reader.read(buff)) != -1) {
-			    sb.append(buff, 0, read);
-			}
-			return sb.toString();
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		} finally {
-			IOUtil.closeQuietly(is);
-		}
-	}
-
-	private void setContentString(String content, String storeEncoding) {
+	@Override
+	protected void setContentString(String content, String storeEncoding) {
 		try {
 			ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes(storeEncoding));
-			text_file.setContents(bis, true, true, null);
+			file.setContents(bis, true, true, null);
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
-	}
-
-	@Override
-	public void setLineEnding(String newLineEnding) {
-		if (newLineEnding.equals(lineEnding)) {
-			return;
-		}
-		String newEnding = "\r\n";
-		if (newLineEnding.equals("CR")) {
-			newEnding = "\r";
-		} else if (newLineEnding.equals("LF")) {
-			newEnding = "\n";
-		}
-		String content = getContentString().replaceAll("(\\r\\n|\\r|\\n)", newEnding);
-		setContentString(content, getEncoding());
-	}
-
-	@Override
-	public void convertCharset(String newEncoding) {
-		String content = getContentString();
-		setContentString(content, newEncoding);
-		setEncoding(newEncoding);
 	}
 }
