@@ -132,7 +132,7 @@ public class EncodingControlContribution extends
 			addFileEncodingItem(handler.getDetectedEncoding());
 
 			boolean isFileEncodingMenuAdded = true;
-			if (file_encoding_popup_menu == null) {
+			if (file_encoding_popup_menu == null || file_encoding_popup_menu.isDisposed()) {
 				file_encoding_popup_menu = new Menu(file_encoding_label);
 				isFileEncodingMenuAdded = false;
 			}
@@ -290,7 +290,7 @@ public class EncodingControlContribution extends
 			}
 
 			boolean isLineEndingMenuAdded = true;
-			if (line_ending_popup_menu == null) {
+			if (line_ending_popup_menu == null || line_ending_popup_menu.isDisposed()) {
 				line_ending_popup_menu = new Menu(line_ending_label);
 				isLineEndingMenuAdded = false;
 			}
