@@ -2,6 +2,8 @@ package mergedoc.encoding;
 
 import java.util.Enumeration;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -74,5 +76,17 @@ public class Activator extends AbstractUIPlugin {
 
 	public static Image getImage(String fileBaseName) {
 		return plugin.getImageRegistry().get(fileBaseName);
+	}
+
+	public static void info(String message) {
+		log(new Status(Status.INFO, PLUGIN_ID, message));
+	}
+
+	public static void info(String message, Throwable t) {
+		log(new Status(Status.INFO, PLUGIN_ID, message, t));
+	}
+
+	public static void log(IStatus status) {
+		getDefault().getLog().log(status);
 	}
 }

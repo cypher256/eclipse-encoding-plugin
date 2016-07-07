@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.internal.runtime.AdapterManager;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -103,7 +104,11 @@ class WorkspaceTextFileHandler extends ActiveDocumentHandler {
 					IContainer c = (IContainer) packageRoot.element.getClass().getMethod("resource").invoke(packageRoot.element);
 					packageRoot.encoding = c.getDefaultCharset(false);
 				}
-
+				
+			} catch (ResourceException e) {
+				// IFile#getContentDescription - Resource is out of sync with the file system
+				Activator.info(e.getMessage(), e);
+				
 			} catch (Exception e) {
 				throw new IllegalStateException(e);
 			}

@@ -2,6 +2,7 @@ package mergedoc.encoding;
 
 import java.io.StringReader;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
@@ -76,6 +77,11 @@ class ClassFileEditorInputHandler extends ActiveDocumentHandler {
 						packageRoot.encoding = currentEncoding;
 					}
 				}
+				
+			} catch (InvocationTargetException e) {
+				// Non class path entry getRawClasspathEntry
+				Activator.info(getClass().getSimpleName() + ": " + e.getCause().getMessage(), e);
+				
 			} catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
