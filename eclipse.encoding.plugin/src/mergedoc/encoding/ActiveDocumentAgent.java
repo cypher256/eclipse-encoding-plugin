@@ -14,7 +14,9 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.editors.text.IEncodingSupport;
+import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.FileStoreEditorInput;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * This agent tries to provide the encoding of the document of the active editor.
@@ -79,8 +81,16 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	private ActiveDocumentHandler getHandler(IEditorPart editor) {
 
 		if (editor != null && editor.getAdapter(IEncodingSupport.class) != null) {
-			IEditorInput editorInput = editor.getEditorInput();
+			
+			// MultiPartEditor active tab
+			if (editor instanceof FormEditor) {
+				 IEditorPart e = ((FormEditor) editor).getActiveEditor();
+				 if (e instanceof ITextEditor) {
+					editor = e;
+				 }
+			}
 
+			IEditorInput editorInput = editor.getEditorInput();
 			if (editorInput instanceof IFileEditorInput) {
 				return new WorkspaceTextFileHandler(editor, callback);
 			}

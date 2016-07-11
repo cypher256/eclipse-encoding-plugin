@@ -1,9 +1,12 @@
 package mergedoc.encoding;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.ui.IEditorPart;
@@ -21,11 +24,44 @@ class StorageEditorInputHandler extends ActiveDocumentHandler {
 	private IStorage storage = null;
 
 	public StorageEditorInputHandler(IEditorPart part, IActiveDocumentAgentCallback callback) throws CoreException {
+		
 		super(part, callback);
 		if (!(part.getEditorInput() instanceof IStorageEditorInput)) {
 			throw new IllegalArgumentException("part must provide IStorageEditorInput.");
 		}
 		storage = ((IStorageEditorInput) part.getEditorInput()).getStorage();
+		
+		// pom editor Effective pom tab, initial content 'Loading Effective pom...'
+		// Fixed UTF-8, LF
+		if (storage != null && storage.getClass().getName().endsWith("MavenStorage")) {
+			currentEncoding = "UTF-8";
+			storage = new IStorage() {
+				@Override
+				public <T> T getAdapter(Class<T> adapter) {
+					return null;
+				}
+				@Override
+				public boolean isReadOnly() {
+					return true;
+				}
+				@Override
+				public String getName() {
+					return null;
+				}
+				@Override
+				public IPath getFullPath() {
+					return null;
+				}
+				@Override
+				public InputStream getContents() {
+					try {
+						return new ByteArrayInputStream("\n".getBytes(currentEncoding));
+					} catch (UnsupportedEncodingException e) {
+						return null;
+					}
+				}
+			};
+		}
 		updateEncodingInfoPrivately();
 	}
 

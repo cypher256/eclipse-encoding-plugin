@@ -15,8 +15,6 @@ import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.forms.editor.FormEditor;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * This handler handles workspace text file for ActiveDocumentAgent.
@@ -31,18 +29,9 @@ class WorkspaceTextFileHandler extends ActiveDocumentHandler {
 	private PackageRoot packageRoot = new PackageRoot();
 
 	public WorkspaceTextFileHandler(IEditorPart editor, IActiveDocumentAgentCallback callback) {
-
 		super(editor, callback);
 		if (!(editor.getEditorInput() instanceof IFileEditorInput)) {
 			throw new IllegalArgumentException("part must provide IFileEditorInput.");
-		}
-
-		// MultiPartEditor active tab
-		if (editor instanceof FormEditor) {
-			 IEditorPart e = ((FormEditor) editor).getActiveEditor();
-			 if (e instanceof ITextEditor) {
-				 editor = e;
-			 }
 		}
 		file = ((IFileEditorInput) editor.getEditorInput()).getFile();
 		updateEncodingInfoPrivately();
@@ -100,8 +89,10 @@ class WorkspaceTextFileHandler extends ActiveDocumentHandler {
 				Object ele = AdapterManager.getDefault().getAdapter(editorInput, "org.eclipse.jdt.core.IJavaElement");
 				if (ele != null) {
 					final int PACKAGE_FRAGMENT_ROOT = 3; // IJavaElement.PACKAGE_FRAGMENT_ROOT
-					packageRoot.element = (IAdaptable) ele.getClass().getMethod("getAncestor", int.class).invoke(ele, PACKAGE_FRAGMENT_ROOT);
-					IContainer c = (IContainer) packageRoot.element.getClass().getMethod("resource").invoke(packageRoot.element);
+					packageRoot.element = (IAdaptable) ele.getClass()
+							.getMethod("getAncestor", int.class).invoke(ele, PACKAGE_FRAGMENT_ROOT);
+					IContainer c = (IContainer) packageRoot.element.getClass()
+							.getMethod("resource").invoke(packageRoot.element);
 					packageRoot.encoding = c.getDefaultCharset(false);
 				}
 				
