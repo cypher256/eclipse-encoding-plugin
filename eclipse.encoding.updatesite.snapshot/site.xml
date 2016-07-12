@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/eclipse.encoding.plugin.feature_1.5.4.201607121036.jar" id="eclipse.encoding.plugin.feature" version="1.5.4.201607121036">
+      <category name="eclipse.encoding.plugin.category"/>
+   </feature>
+   <category-def name="eclipse.encoding.plugin.category" label="Encoding StatusBar"/>
+</site>
