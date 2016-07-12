@@ -1,0 +1,5 @@
+Plan
+* ---
+
+Closed
+* Added pom editor Effective pom tab support
