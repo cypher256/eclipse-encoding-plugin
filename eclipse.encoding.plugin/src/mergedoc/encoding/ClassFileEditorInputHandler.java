@@ -80,7 +80,7 @@ class ClassFileEditorInputHandler extends ActiveDocumentHandler {
 				
 			} catch (InvocationTargetException e) {
 				// Non class path entry getRawClasspathEntry
-				Activator.info(getClass().getSimpleName() + ": " + e.getCause().getMessage(), e);
+				Activator.info(e.getCause().getMessage() + " " + getClass().getSimpleName());
 				
 			} catch (Exception e) {
 				throw new IllegalStateException(e);

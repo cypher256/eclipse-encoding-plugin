@@ -98,7 +98,7 @@ class WorkspaceTextFileHandler extends ActiveDocumentHandler {
 				
 			} catch (ResourceException e) {
 				// IFile#getContentDescription - Resource is out of sync with the file system
-				Activator.info(e.getMessage(), e);
+				Activator.info(e.getMessage());
 				
 			} catch (Exception e) {
 				throw new IllegalStateException(e);
