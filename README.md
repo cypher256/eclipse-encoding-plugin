@@ -30,9 +30,6 @@ Autodetect: Automatic detection by juniversalchardet
 Inheritance: Inherited from folder or project properties, workspace preferences  
 Content Type: Determined from content type setting  
 
-**Encoding Preferences Shortcuts**  
-![](image/preference.jpg)  
-
 ## License
 [Eclipse Public License - v 1.0](https://www.eclipse.org/legal/epl-v10.html)  
 Copyright (c) 2016- Shinji Kashihara and others. All rights reserved.  
