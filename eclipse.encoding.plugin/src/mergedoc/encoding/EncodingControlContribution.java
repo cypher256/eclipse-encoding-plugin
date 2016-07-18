@@ -213,8 +213,8 @@ public class EncodingControlContribution extends
 				boolean enabledAction = !agent.isDocumentDirty() && handler.canChangeFileEncoding();
 				handler.warnSaveMessage(!enabledAction);
 				
-				createPreferenceMenu(file_encoding_popup_menu);
-				createShortcutMenu(file_encoding_popup_menu);
+				createPreferenceMenu();
+				createShortcutMenu();
 
 				// Create encoding menu meta data
 				final List<FileEncodingItem> encodingList = new ArrayList<FileEncodingItem>();
@@ -399,76 +399,36 @@ public class EncodingControlContribution extends
 		});
 	}
 	
-	private void createPreferenceMenu(Menu parentMenu) {
-		{
-			final String KEY = PREF_AUTODETECT_CHANGE;
-			final MenuItem item = new MenuItem(parentMenu, SWT.RADIO);
-			item.setText("Autodetect: Change Automatically");
-			item.setSelection(pref().getBoolean(KEY));
-			item.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					boolean sel = !pref().getBoolean(KEY);
-					item.setSelection(sel);
-					pref().setValue(KEY, sel);
-					encodingInfoChanged();
-				}
-			});
-		}
-		{
-			final String KEY = PREF_AUTODETECT_WARN;
-			final MenuItem item = new MenuItem(parentMenu, SWT.RADIO);
-			item.setText("Autodetect: Show Warning");
-			item.setSelection(pref().getBoolean(KEY));
-			item.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					boolean sel = !pref().getBoolean(KEY);
-					item.setSelection(sel);
-					pref().setValue(KEY, sel);
-					encodingInfoChanged();
-				}
-			});
-		}
-		{
-			final String KEY = PREF_AUTODETECT_NOTHING;
-			final MenuItem item = new MenuItem(parentMenu, SWT.RADIO);
-			item.setText("Autodetect: Do Nothing");
-			item.setSelection(pref().getBoolean(KEY));
-			item.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					boolean sel = !pref().getBoolean(KEY);
-					item.setSelection(sel);
-					pref().setValue(KEY, sel);
-					encodingInfoChanged();
-				}
-			});
-		}
-		{
-			final String KEY = PREF_DISABLE_CONVERSION_MENU;
-			final MenuItem item = new MenuItem(parentMenu, SWT.CHECK);
-			item.setText("Disable conversion menu if mismatch");
-			item.setSelection(pref().getBoolean(KEY));
-			item.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					boolean sel = !pref().getBoolean(KEY);
-					item.setSelection(sel);
-					pref().setValue(KEY, sel);
-				}
-			});
-		}
+	private void createPreferenceMenu() {
+		
+		createCheckMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically");
+		createCheckMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
+		createCheckMenuItem(PREF_DISABLE_CONVERSION_MENU, "Autodetect: Disable Conversion Menu");
 		new MenuItem(file_encoding_popup_menu, SWT.SEPARATOR);
 	}
-
-	private void createShortcutMenu(Menu parentMenu) {
+	
+	private void createCheckMenuItem(final String prefKey, String message) {
+		
+		final MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.CHECK);
+		item.setText(message);
+		item.setSelection(pref().getBoolean(prefKey));
+		item.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				boolean sel = !pref().getBoolean(prefKey);
+				item.setSelection(sel);
+				pref().setValue(prefKey, sel);
+			}
+		});
+	}
+	
+	private void createShortcutMenu() {
 
 		ActiveDocumentHandler handler = agent.getHandler();
 
 		// Menu for Open Workspace Preferences
 		{
-			MenuItem item = new MenuItem(parentMenu, SWT.NONE);
+			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 			item.setText("Workspace Preferences..." + getEncodingLabel(ResourcesPlugin.getEncoding()));
 			item.setImage(Activator.getImage("workspace"));
 			item.addSelectionListener(new SelectionAdapter() {
@@ -494,7 +454,7 @@ public class EncodingControlContribution extends
 					encoding = "Inheritance";
 				}
 			}
-			MenuItem item = new MenuItem(parentMenu, SWT.NONE);
+			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 			item.setText("Project Properties..." + getEncodingLabel(encoding));
 			item.setImage(Activator.getImage("project"));
 			item.setEnabled(project != null);
@@ -515,7 +475,7 @@ public class EncodingControlContribution extends
 			if (encoding == null) {
 				encoding = "Inheritance";
 			}
-			MenuItem item = new MenuItem(parentMenu, SWT.NONE);
+			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 			item.setText("Package Root Properties..." + getEncodingLabel(encoding));
 			item.setImage(Activator.getImage("root"));
 			item.addSelectionListener(new SelectionAdapter() {
@@ -542,7 +502,7 @@ public class EncodingControlContribution extends
 					encoding = "Inheritance";
 				}
 			}
-			MenuItem item = new MenuItem(parentMenu, SWT.NONE);
+			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 			item.setText("File Properties..." + getEncodingLabel(encoding));
 			item.setImage(Activator.getImage("file"));
 			item.setEnabled(file != null);
@@ -562,7 +522,7 @@ public class EncodingControlContribution extends
 			if (encoding == null) {
 				encoding = "Not Set";
 			}
-			MenuItem item = new MenuItem(parentMenu, SWT.NONE);
+			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 			item.setText("Content Types Preferences..." + getEncodingLabel(encoding));
 			item.setImage(Activator.getImage("content"));
 			item.setEnabled(handler.enabledContentTypeEnding());
