@@ -2,11 +2,11 @@
 Show file information for the active editor in the Eclipse status bar.  
 
 ## Install
-**First way**
+**First way**  
 Drag-n-drop the following button to your running Eclipse main toolbar.  
 <a href="http://marketplace.eclipse.org/marketplace-client-intro?mpc_install=2925771" class="drag" title="Drag-n-drop to your running Eclipse main toolbar to install Encoding StatusBar plugin"><img class="img-responsive" src="https://marketplace.eclipse.org/sites/all/themes/solstice/public/images/marketplace/btn-install.png" alt="Drag-n-drop to your running Eclipse main toolbar to install Encoding StatusBar plugin" /></a>
 
-**Second way**
+**Second way**  
 Eclipse > Help > Eclipse Marketplace... > Search "Encoding StatusBar"
 <!--
 **Eclipse Marketplace**  
