@@ -113,6 +113,6 @@ class ClassFileEditorInputHandler extends ActiveDocumentHandler {
 	}
 
 	@Override
-	public void showWarnMessage(boolean showsWarn) {
+	public void warnSaveMessage(boolean showsWarn) {
 	}
 }

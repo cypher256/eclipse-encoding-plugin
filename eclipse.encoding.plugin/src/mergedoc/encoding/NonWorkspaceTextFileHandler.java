@@ -78,10 +78,6 @@ class NonWorkspaceTextFileHandler extends ActiveDocumentHandler {
 		return true;
 	}
 	@Override
-	public boolean canConvertCharset() {
-		return true;
-	}
-	@Override
 	public boolean enabledContentTypeEnding() {
 		return true;
 	}

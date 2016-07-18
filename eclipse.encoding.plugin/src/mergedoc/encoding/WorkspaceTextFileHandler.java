@@ -114,10 +114,6 @@ class WorkspaceTextFileHandler extends ActiveDocumentHandler {
 		return true;
 	}
 	@Override
-	public boolean canConvertCharset() {
-		return true;
-	}
-	@Override
 	public boolean canConvertLineEnding() {
 		return true;
 	}

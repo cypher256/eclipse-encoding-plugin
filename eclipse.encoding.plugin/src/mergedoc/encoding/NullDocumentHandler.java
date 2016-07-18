@@ -46,8 +46,4 @@ class NullDocumentHandler extends ActiveDocumentHandler {
 	public boolean canChangeFileEncoding() {
 		return false;
 	}
-	@Override
-	public boolean canConvertCharset() {
-		return false;
-	}
 }

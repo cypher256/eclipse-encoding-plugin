@@ -91,6 +91,10 @@ class ActiveDocumentHandler {
 	public String getLineEnding() {
 		return lineEnding;
 	}
+	
+	public boolean isMismatchEncoding() {
+		return detectedEncoding!= null && !EncodingUtil.areCharsetsEqual(detectedEncoding, currentEncoding);
+	}
 
 	public void propertyChanged(Object source, int propId) {
 		// It seems that the editor's encoding will not change when it is dirty.
@@ -166,9 +170,6 @@ class ActiveDocumentHandler {
 	public boolean canChangeFileEncoding() {
 		return false;
 	}
-	public boolean canConvertCharset() {
-		return false;
-	}
 	public boolean canConvertLineEnding() {
 		return false;
 	}
@@ -223,7 +224,7 @@ class ActiveDocumentHandler {
 		setEncoding(newEncoding);
 	}
 
-	public void showWarnMessage(boolean showsWarn) {
+	public void warnSaveMessage(boolean showsWarn) {
 		if (editor != null) {
 			IStatusLineManager statusLineManager = editor.getEditorSite().getActionBars().getStatusLineManager();
 			if (showsWarn) {
@@ -231,6 +232,17 @@ class ActiveDocumentHandler {
 					String.format("Editor must be saved before status bar action."));
 			} else {
 				statusLineManager.setMessage(null);
+			}
+		}
+	}
+
+	public void infoMessage(String message, Object... args) {
+		if (editor != null) {
+			IStatusLineManager statusLineManager = editor.getEditorSite().getActionBars().getStatusLineManager();
+			if (message == null) {
+				statusLineManager.setMessage(null);
+			} else {
+				statusLineManager.setMessage(Activator.getImage("info"), String.format(message, args));
 			}
 		}
 	}
