@@ -3,7 +3,11 @@
    <description name="Encoding StatusBar Update Site Snapshot" url="https://raw.githubusercontent.com/cypher256/eclipse-encoding-plugin/master/eclipse.encoding.updatesite.snapshot/site.xml">
       An update site snapshot for Encoding StatusBar Eclipse Plugin.
    </description>
+<<<<<<< HEAD
+   <feature url="features/eclipse.encoding.plugin.feature_1.6.0.201607181732.jar" id="eclipse.encoding.plugin.feature" version="1.6.0.201607181732">
+=======
    <feature url="features/eclipse.encoding.plugin.feature_1.6.0.201607181655.jar" id="eclipse.encoding.plugin.feature" version="1.6.0.201607181655">
+>>>>>>> branch 'master' of https://github.com/cypher256/eclipse-encoding-plugin.git
       <category name="eclipse.encoding.plugin.category"/>
    </feature>
    <category-def name="eclipse.encoding.plugin.category" label="Encoding StatusBar"/>

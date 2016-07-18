@@ -187,8 +187,6 @@ public class EncodingControlContribution extends
 		addFileEncodingItem(handler.getInheritedEncoding());
 		addFileEncodingItem(handler.getDetectedEncoding());
 
-		file_encoding_label.setMenu(file_encoding_popup_menu);
-
 		if (handler.canChangeFileEncoding()) {
 			file_encoding_label.setToolTipText(
 				String.format("Right-click to change the encoding of '%s'", handler.getFileName()));
@@ -198,9 +196,10 @@ public class EncodingControlContribution extends
 		if (file_encoding_popup_menu != null && !file_encoding_popup_menu.isDisposed()) {
 			return;
 		}
+		file_encoding_popup_menu = new Menu(file_encoding_label);
+		file_encoding_label.setMenu(file_encoding_popup_menu);
 		
 		// Add the menu items dynamically
-		file_encoding_popup_menu = new Menu(file_encoding_label);
 		file_encoding_popup_menu.addMenuListener(new MenuAdapter() {
 			@Override
 			public void menuShown(MenuEvent e) {
@@ -345,7 +344,6 @@ public class EncodingControlContribution extends
 			line_ending_list.add(new LineEndingItem("CR", "(\\r, 0D)"));
 			line_ending_list.add(new LineEndingItem("LF", "(\\n, 0A, Unix)"));
 		}
-		line_ending_label.setMenu(line_ending_popup_menu);
 
 		if (handler.canConvertLineEnding()) {
 			line_ending_label.setToolTipText(
@@ -356,9 +354,10 @@ public class EncodingControlContribution extends
 		if (line_ending_popup_menu != null && !line_ending_popup_menu.isDisposed()) {
 			return;
 		}
+		line_ending_popup_menu = new Menu(line_ending_label);
+		line_ending_label.setMenu(line_ending_popup_menu);
 
 		// Add the menu items dynamically.
-		line_ending_popup_menu = new Menu(line_ending_label);
 		line_ending_popup_menu.addMenuListener(new MenuAdapter() {
 			@Override
 			public void menuShown(MenuEvent e) {
