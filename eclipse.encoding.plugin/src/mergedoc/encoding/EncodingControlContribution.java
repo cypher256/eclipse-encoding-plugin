@@ -109,7 +109,7 @@ public class EncodingControlContribution extends
 			gridData.widthHint = 40;
 			line_ending_label.setLayoutData(gridData);
 		}
-		// Reset addMenuListener dynamically 
+		// Reset addMenuListener dynamically called from encodingInfoChanged manager.update
 		file_encoding_popup_menu = null;
 		line_ending_popup_menu = null;
 		
