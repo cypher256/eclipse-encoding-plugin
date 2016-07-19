@@ -93,7 +93,7 @@ class ActiveDocumentHandler {
 	}
 	
 	public boolean isMismatchEncoding() {
-		return detectedEncoding!= null && !EncodingUtil.areCharsetsEqual(detectedEncoding, currentEncoding);
+		return !EncodingUtil.areCharsetsEqual(detectedEncoding, currentEncoding);
 	}
 
 	public void propertyChanged(Object source, int propId) {

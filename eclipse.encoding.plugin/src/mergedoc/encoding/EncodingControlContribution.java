@@ -249,7 +249,7 @@ public class EncodingControlContribution extends
 				charsetParentItem.setText(String.format("Convert Charset %s to", current_file_encoding));
 				charsetParentItem.setImage(Activator.getImage("convert_charset"));
 				charsetParentItem.setEnabled(enabledAction);
-				if (handler.isMismatchEncoding() && pref().getBoolean(PREF_DISABLE_CONVERSION_MENU)) {
+				if (handler.isMismatchEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
 					charsetParentItem.setEnabled(false);
 				}
 				Menu convertMenu = new Menu(charsetParentItem);
@@ -276,6 +276,9 @@ public class EncodingControlContribution extends
 				MenuItem encodingParentItem = new MenuItem(file_encoding_popup_menu, SWT.CASCADE);
 				encodingParentItem.setText("Change Encoding to");
 				encodingParentItem.setEnabled(enabledAction);
+				if (!handler.isMismatchEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+					encodingParentItem.setEnabled(false);
+				}
 				encodingParentItem.setImage(Activator.getImage("change_encoding"));
 				Menu encodingMenu = new Menu(encodingParentItem);
 				encodingParentItem.setMenu(encodingMenu);
@@ -287,6 +290,10 @@ public class EncodingControlContribution extends
 					item.setImage(EncodingUtil.getImage(i.encoding));
 					if (EncodingUtil.areCharsetsEqual(i.encoding, current_file_encoding)) {
 						item.setSelection(true);
+					}
+					// Converted to one line and freeze on big file
+					else if (i.encoding.startsWith("UTF-16") && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+						item.setEnabled(false);
 					}
 					item.addSelectionListener(new SelectionAdapter() {
 						@Override
@@ -301,13 +308,13 @@ public class EncodingControlContribution extends
 				// Create change encoding for autodetect
 				final MenuItem detectItem = new MenuItem(file_encoding_popup_menu, SWT.NONE);
 				detectItem.setImage(Activator.getImage("autodetect"));
-
+				
 				final String detectedEncoding = handler.getDetectedEncoding();
 				if (detectedEncoding == null) {
 					detectItem.setText("Change Encoding (Cannot Autodetect)");
 					detectItem.setEnabled(false);
 				}
-				else if (EncodingUtil.areCharsetsEqual(detectedEncoding, current_file_encoding)) {
+				else if (!handler.isMismatchEncoding()) {
 					detectItem.setText("Change Encoding (Matches Autodetect)");
 					detectItem.setEnabled(false);
 				}
@@ -380,7 +387,7 @@ public class EncodingControlContribution extends
 					final MenuItem item = new MenuItem(line_ending_popup_menu, SWT.RADIO);
 					item.setText(lineEndingItem.value + " " + lineEndingItem.desc);
 					item.setEnabled(enabledAction);
-					if (handler.isMismatchEncoding() && pref().getBoolean(PREF_DISABLE_CONVERSION_MENU)) {
+					if (handler.isMismatchEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
 						item.setEnabled(false);
 					}
 					if (lineEndingItem.value.equals(current_line_ending)) {
@@ -406,7 +413,7 @@ public class EncodingControlContribution extends
 		
 		createCheckMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically");
 		createCheckMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
-		createCheckMenuItem(PREF_DISABLE_CONVERSION_MENU, "Autodetect: Disable Conversion Menu");
+		createCheckMenuItem(PREF_DISABLE_DANGER_OPERATION, "Autodetect: Disable Dangerous Operations");
 		new MenuItem(file_encoding_popup_menu, SWT.SEPARATOR);
 	}
 	
