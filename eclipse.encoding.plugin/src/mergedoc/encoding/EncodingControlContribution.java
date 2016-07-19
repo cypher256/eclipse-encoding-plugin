@@ -109,7 +109,10 @@ public class EncodingControlContribution extends
 			gridData.widthHint = 40;
 			line_ending_label.setLayoutData(gridData);
 		}
-
+		// Reset addMenuListener dynamically 
+		file_encoding_popup_menu = null;
+		line_ending_popup_menu = null;
+		
 		fillControl();
 		return status_bar;
 	}
@@ -161,13 +164,14 @@ public class EncodingControlContribution extends
 			}
 		}
 		
-		createFileEncodingMenu(handler);
-		createFileEndingMenu(handler);
+		createFileEncodingMenu();
+		createFileEndingMenu();
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void createFileEncodingMenu(ActiveDocumentHandler handler) {
+	private void createFileEncodingMenu() {
 		
+		ActiveDocumentHandler handler = agent.getHandler();
 		current_file_encoding = handler.getCurrentEncoding();
 		file_encoding_label.setText(current_file_encoding == null ? "" : current_file_encoding);
 		
@@ -328,8 +332,9 @@ public class EncodingControlContribution extends
 		});
 	}
 	
-	private void createFileEndingMenu(ActiveDocumentHandler handler) {
+	private void createFileEndingMenu() {
 		
+		ActiveDocumentHandler handler = agent.getHandler();
 		current_line_ending = handler.getLineEnding();
 		line_ending_label.setText(current_line_ending == null ? "" : current_line_ending);
 		if (current_line_ending == null) {
