@@ -109,9 +109,6 @@ public class EncodingControlContribution extends
 			gridData.widthHint = 40;
 			line_ending_label.setLayoutData(gridData);
 		}
-		// Reset addMenuListener dynamically 
-		file_encoding_popup_menu = null;
-		line_ending_popup_menu = null;
 		
 		fillControl();
 		return status_bar;
@@ -198,6 +195,7 @@ public class EncodingControlContribution extends
 			file_encoding_label.setToolTipText(null);
 		}
 		if (file_encoding_popup_menu != null && !file_encoding_popup_menu.isDisposed()) {
+			file_encoding_label.setMenu(file_encoding_popup_menu);
 			return;
 		}
 		file_encoding_popup_menu = new Menu(file_encoding_label);
@@ -357,6 +355,7 @@ public class EncodingControlContribution extends
 			line_ending_label.setToolTipText(null);
 		}
 		if (line_ending_popup_menu != null && !line_ending_popup_menu.isDisposed()) {
+			line_ending_label.setMenu(line_ending_popup_menu);
 			return;
 		}
 		line_ending_popup_menu = new Menu(line_ending_label);
