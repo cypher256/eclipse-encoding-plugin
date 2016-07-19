@@ -93,7 +93,7 @@ class ClassFileEditorInputHandler extends ActiveDocumentHandler {
 
 			String content = getContentString();
 			if (content != null) {
-				lineEnding = EncodingUtil.getLineEnding(new StringReader(content));
+				lineEnding = Encodings.getLineEnding(new StringReader(content));
 			} else {
 				// Non source code, don't show.
 				currentEncoding = null;

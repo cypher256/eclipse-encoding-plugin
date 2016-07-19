@@ -117,7 +117,7 @@ public class EncodingControlContribution extends
 	private void addFileEncodingItem(String encoding) {
 		if (encoding != null) {
 			for (String e : file_encoding_list) {
-				if (EncodingUtil.areCharsetsEqual(e, encoding)) {
+				if (Encodings.areCharsetsEqual(e, encoding)) {
 					return;
 				}
 			}
@@ -132,7 +132,7 @@ public class EncodingControlContribution extends
 		if (
 			!agent.isDocumentDirty() &&
 			handler.canChangeFileEncoding() &&
-			handler.isMismatchEncoding() &&
+			handler.mismatchesEncoding() &&
 			pref().getBoolean(PREF_AUTODETECT_CHANGE)
 		) {
 			String detectedEncoding = handler.getDetectedEncoding();
@@ -140,7 +140,7 @@ public class EncodingControlContribution extends
 			if (file == null) {
 				// Non workspace file, mismatch workspace preferences
 				String workspaceEncoding = ResourcesPlugin.getEncoding();
-				if (!EncodingUtil.areCharsetsEqual(detectedEncoding, workspaceEncoding)) {
+				if (!Encodings.areCharsetsEqual(detectedEncoding, workspaceEncoding)) {
 					handler.setEncoding(detectedEncoding);
 					handler.infoMessage("Encoding has been set %s automatically.", detectedEncoding);
 					return;
@@ -172,7 +172,7 @@ public class EncodingControlContribution extends
 		current_file_encoding = handler.getCurrentEncoding();
 		file_encoding_label.setText(current_file_encoding == null ? "" : current_file_encoding);
 		
-		if (handler.isMismatchEncoding() && pref().getBoolean(PREF_AUTODETECT_WARN)) {
+		if (handler.mismatchesEncoding() && pref().getBoolean(PREF_AUTODETECT_WARN)) {
 			file_encoding_label.setImage(Activator.getImage("warn"));
 		} else {
 			file_encoding_label.setImage(null);
@@ -224,9 +224,9 @@ public class EncodingControlContribution extends
 					FileEncodingItem i = new FileEncodingItem();
 					encodingList.add(i);
 					i.encoding = encoding;
-					i.isInheritance = EncodingUtil.areCharsetsEqual(encoding, handler.getInheritedEncoding());
-					i.isAutodetect  = EncodingUtil.areCharsetsEqual(encoding, handler.getDetectedEncoding());
-					i.isContentType = EncodingUtil.areCharsetsEqual(encoding, handler.getContentTypeEncoding());
+					i.isInheritance = Encodings.areCharsetsEqual(encoding, handler.getInheritedEncoding());
+					i.isAutodetect  = Encodings.areCharsetsEqual(encoding, handler.getDetectedEncoding());
+					i.isContentType = Encodings.areCharsetsEqual(encoding, handler.getContentTypeEncoding());
 
 					StringBuilder sb = new StringBuilder();
 					if (i.isAutodetect) {
@@ -249,7 +249,7 @@ public class EncodingControlContribution extends
 				charsetParentItem.setText(String.format("Convert Charset %s to", current_file_encoding));
 				charsetParentItem.setImage(Activator.getImage("convert_charset"));
 				charsetParentItem.setEnabled(enabledAction);
-				if (handler.isMismatchEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+				if (handler.mismatchesEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
 					charsetParentItem.setEnabled(false);
 				}
 				Menu convertMenu = new Menu(charsetParentItem);
@@ -257,12 +257,12 @@ public class EncodingControlContribution extends
 
 				for (final FileEncodingItem i : encodingList) {
 
-					if (EncodingUtil.areCharsetsEqual(i.encoding, current_file_encoding)) {
+					if (Encodings.areCharsetsEqual(i.encoding, current_file_encoding)) {
 						continue;
 					}
 					MenuItem item = new MenuItem(convertMenu, SWT.NONE);
 					item.setText(i.menuText);
-					item.setImage(EncodingUtil.getImage(i.encoding));
+					item.setImage(Encodings.getImage(i.encoding));
 
 					item.addSelectionListener(new SelectionAdapter() {
 						@Override
@@ -276,7 +276,7 @@ public class EncodingControlContribution extends
 				MenuItem encodingParentItem = new MenuItem(file_encoding_popup_menu, SWT.CASCADE);
 				encodingParentItem.setText("Change Encoding to");
 				encodingParentItem.setEnabled(enabledAction);
-				if (!handler.isMismatchEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+				if (handler.matchesEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
 					encodingParentItem.setEnabled(false);
 				}
 				encodingParentItem.setImage(Activator.getImage("change_encoding"));
@@ -287,8 +287,8 @@ public class EncodingControlContribution extends
 
 					final MenuItem item = new MenuItem(encodingMenu, SWT.RADIO);
 					item.setText(i.menuText);
-					item.setImage(EncodingUtil.getImage(i.encoding));
-					if (EncodingUtil.areCharsetsEqual(i.encoding, current_file_encoding)) {
+					item.setImage(Encodings.getImage(i.encoding));
+					if (Encodings.areCharsetsEqual(i.encoding, current_file_encoding)) {
 						item.setSelection(true);
 					}
 					// Converted to one line and freeze on big file
@@ -314,7 +314,7 @@ public class EncodingControlContribution extends
 					detectItem.setText("Change Encoding (Cannot Autodetect)");
 					detectItem.setEnabled(false);
 				}
-				else if (!handler.isMismatchEncoding()) {
+				else if (handler.matchesEncoding()) {
 					detectItem.setText("Change Encoding (Matches Autodetect)");
 					detectItem.setEnabled(false);
 				}
@@ -325,7 +325,7 @@ public class EncodingControlContribution extends
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							for (FileEncodingItem i : encodingList) {
-								if (EncodingUtil.areCharsetsEqual(i.encoding, detectedEncoding)) {
+								if (Encodings.areCharsetsEqual(i.encoding, detectedEncoding)) {
 									handler.setEncoding(i.encoding);
 									break;
 								}
@@ -387,7 +387,7 @@ public class EncodingControlContribution extends
 					final MenuItem item = new MenuItem(line_ending_popup_menu, SWT.RADIO);
 					item.setText(lineEndingItem.value + " " + lineEndingItem.desc);
 					item.setEnabled(enabledAction);
-					if (handler.isMismatchEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+					if (handler.mismatchesEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
 						item.setEnabled(false);
 					}
 					if (lineEndingItem.value.equals(current_line_ending)) {

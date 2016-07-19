@@ -86,12 +86,12 @@ class StorageEditorInputHandler extends ActiveDocumentHandler {
 		lineEnding = null;
 
 		if (storage != null) {
-			detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
+			detectedEncoding = Encodings.detectEncoding(getInputStream());
 			IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());
 			if (contentType != null) {
 				contentTypeEncoding = contentType.getDefaultCharset();
 			}
-			lineEnding = EncodingUtil.getLineEnding(getInputStream(), getCurrentEncoding());
+			lineEnding = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
 		}
 		// Just assume that the encoding information is updated.
 		return true;

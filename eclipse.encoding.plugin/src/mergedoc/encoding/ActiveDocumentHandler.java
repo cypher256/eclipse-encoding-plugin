@@ -92,8 +92,11 @@ class ActiveDocumentHandler {
 		return lineEnding;
 	}
 	
-	public boolean isMismatchEncoding() {
-		return !EncodingUtil.areCharsetsEqual(detectedEncoding, currentEncoding);
+	public boolean matchesEncoding() {
+		return detectedEncoding != null && Encodings.areCharsetsEqual(detectedEncoding, currentEncoding);
+	}
+	public boolean mismatchesEncoding() {
+		return detectedEncoding != null && !Encodings.areCharsetsEqual(detectedEncoding, currentEncoding);
 	}
 
 	public void propertyChanged(Object source, int propId) {
@@ -121,10 +124,10 @@ class ActiveDocumentHandler {
 	public void setEncoding(String encoding) {
 		try {
 			// null is inheritance
-			if (EncodingUtil.areCharsetsEqual(encoding, contentTypeEncoding)) {
+			if (Encodings.areCharsetsEqual(encoding, contentTypeEncoding)) {
 				encoding = null;
 			}
-			else if (EncodingUtil.areCharsetsEqual(encoding, inheritedEncoding) && contentTypeEncoding == null) {
+			else if (Encodings.areCharsetsEqual(encoding, inheritedEncoding) && contentTypeEncoding == null) {
 				encoding = null;
 			}
 			encodingSupport.setEncoding(encoding);
@@ -200,7 +203,7 @@ class ActiveDocumentHandler {
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			IOUtil.closeQuietly(is);
+			IOs.closeQuietly(is);
 		}
 	}
 

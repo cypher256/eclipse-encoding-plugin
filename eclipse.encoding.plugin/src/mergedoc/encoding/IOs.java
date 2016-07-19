@@ -3,9 +3,9 @@ package mergedoc.encoding;
 import java.io.Closeable;
 import java.io.IOException;
 
-public class IOUtil {
+public class IOs {
 
-	private IOUtil() {
+	private IOs() {
 	}
 
 	public static void closeQuietly(Closeable closeable) {

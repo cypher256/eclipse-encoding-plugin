@@ -11,16 +11,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.graphics.Image;
-import org.mozilla.universalchardet.UniversalDetector;
 
 /**
  * Provide encoding related utility functions.
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-public class EncodingUtil {
+public class Encodings {
 
-	private EncodingUtil() {
+	private Encodings() {
 	}
 
 	/**
@@ -49,7 +48,7 @@ public class EncodingUtil {
 		if (in != null) {
 			InputStream bin = new BufferedInputStream(in);
 			try {
-				UniversalDetector detector = new UniversalDetector(null);
+				StrictUniversalDetector detector = new StrictUniversalDetector();
 				byte[] buf = new byte[4096];
 				int nread;
 				while ((nread = in.read(buf)) > 0 && !detector.isDone()) {
@@ -68,7 +67,7 @@ public class EncodingUtil {
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			} finally {
-				IOUtil.closeQuietly(bin);
+				IOs.closeQuietly(bin);
 			}
 		}
 		return null;
@@ -193,7 +192,7 @@ public class EncodingUtil {
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			IOUtil.closeQuietly(reader);
+			IOs.closeQuietly(reader);
 		}
 	}
 }

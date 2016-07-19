@@ -62,12 +62,12 @@ class NonWorkspaceTextFileHandler extends ActiveDocumentHandler {
 
 		if (text_file_store != null) {
 			inheritedEncoding = ResourcesPlugin.getEncoding();
-			detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
+			detectedEncoding = Encodings.detectEncoding(getInputStream());
 			IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());
 			if (contentType != null) {
 				contentTypeEncoding = contentType.getDefaultCharset();
 			}
-			lineEnding = EncodingUtil.getLineEnding(getInputStream(), getCurrentEncoding());
+			lineEnding = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
 		}
 		// Just assume that the encoding information is updated.
 		return true;
@@ -105,7 +105,7 @@ class NonWorkspaceTextFileHandler extends ActiveDocumentHandler {
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			IOUtil.closeQuietly(os);
+			IOs.closeQuietly(os);
 		}
 	}
 }

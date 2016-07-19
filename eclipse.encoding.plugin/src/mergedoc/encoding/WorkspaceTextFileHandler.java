@@ -78,12 +78,12 @@ class WorkspaceTextFileHandler extends ActiveDocumentHandler {
 		if (file != null) {
 			try {
 				inheritedEncoding = file.getParent().getDefaultCharset();
-				detectedEncoding = EncodingUtil.detectEncoding(getInputStream());
+				detectedEncoding = Encodings.detectEncoding(getInputStream());
 				IContentDescription contentDescription = file.getContentDescription();
 				if (contentDescription != null) {
 					contentTypeEncoding = contentDescription.getCharset();
 				}
-				lineEnding = EncodingUtil.getLineEnding(getInputStream(), getCurrentEncoding());
+				lineEnding = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
 
 				IEditorInput editorInput = editor.getEditorInput();
 				Object ele = AdapterManager.getDefault().getAdapter(editorInput, "org.eclipse.jdt.core.IJavaElement");
