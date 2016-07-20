@@ -389,8 +389,8 @@ public class EncodingControlContribution extends
 					final MenuItem item = new MenuItem(lineSeparatorPopupMenu, SWT.RADIO);
 					item.setText(lineEndingItem.value + " " + lineEndingItem.desc);
 					item.setEnabled(enabledAction);
-					if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) &&
-							(doc.getDetectedEncoding() == null || doc.mismatchesEncoding())) {
+					// Allow change if detectedEncoding is null for english only
+					if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) && doc.mismatchesEncoding()) {
 						item.setEnabled(false);
 					}
 					if (lineEndingItem.value.equals(currentLineSeparator)) {
