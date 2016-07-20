@@ -355,7 +355,7 @@ public class EncodingControlContribution extends
 		
 		ActiveDocument doc = agent.getDocument();
 		if (doc.getLineSeparator() == null) {
-			lineSeparatorLabel.setText(null);
+			lineSeparatorLabel.setText(""); // Label null NG, CLabel null OK
 			lineSeparatorLabel.setMenu(null);
 			lineSeparatorLabel.setToolTipText(null);
 			return;
