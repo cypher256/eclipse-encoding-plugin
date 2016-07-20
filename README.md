@@ -30,7 +30,7 @@ Autodetect: Automatic detection by juniversalchardet
 Inheritance: Inherited from folder or project properties, workspace preferences  
 Content Type: Determined from content type setting  
 
-'Autodetect: Set Automatically'
+'Autodetect: Set Automatically'  
 This only applies when the file properties encoding is not specified.
 
 ## License
