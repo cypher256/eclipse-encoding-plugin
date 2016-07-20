@@ -28,7 +28,7 @@ class ActiveDocument {
 	protected String inheritedEncoding;
 	protected String detectedEncoding;
 	protected String contentTypeEncoding;
-	protected String lineEnding;
+	protected String lineSeparator;
 
 	public ActiveDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		init(editor, callback);
@@ -88,8 +88,8 @@ class ActiveDocument {
 	public String getContentTypeEncoding() {
 		return contentTypeEncoding;
 	}
-	public String getLineEnding() {
-		return lineEnding;
+	public String getLineSeparator() {
+		return lineSeparator;
 	}
 	
 	public boolean matchesEncoding() {
@@ -207,17 +207,17 @@ class ActiveDocument {
 		}
 	}
 
-	public void setLineEnding(String newLineEnding) {
-		if (newLineEnding.equals(lineEnding)) {
+	public void setLineSeparator(String newLineSeparator) {
+		if (newLineSeparator.equals(lineSeparator)) {
 			return;
 		}
-		String newEnding = "\r\n";
-		if (newLineEnding.equals("CR")) {
-			newEnding = "\r";
-		} else if (newLineEnding.equals("LF")) {
-			newEnding = "\n";
+		String newSeparator = "\r\n";
+		if (newLineSeparator.equals("CR")) {
+			newSeparator = "\r";
+		} else if (newLineSeparator.equals("LF")) {
+			newSeparator = "\n";
 		}
-		String content = getContentString().replaceAll("(\\r\\n|\\r|\\n)", newEnding);
+		String content = getContentString().replaceAll("(\\r\\n|\\r|\\n)", newSeparator);
 		setContentString(content, getCurrentEncoding());
 	}
 
@@ -225,17 +225,6 @@ class ActiveDocument {
 		String content = getContentString();
 		setContentString(content, newEncoding);
 		setEncoding(newEncoding);
-	}
-
-	private void setMessage(String imageIconKey, String message, Object... args) {
-		if (editor != null) {
-			IStatusLineManager statusLineManager = editor.getEditorSite().getActionBars().getStatusLineManager();
-			if (message == null) {
-				statusLineManager.setMessage(null);
-			} else {
-				statusLineManager.setMessage(Activator.getImage(imageIconKey), String.format(message, args));
-			}
-		}
 	}
 
 	public void infoMessage(String message, Object... args) {
@@ -246,11 +235,14 @@ class ActiveDocument {
 		setMessage("warn", message, args);
 	}
 
-	public void warnSaveMessage(boolean showsWarn) {
-		if (showsWarn) {
-			warnMessage("Editor must be saved before status bar action.");
-		} else {
-			setMessage(null, null);
+	private void setMessage(String imageIconKey, String message, Object... args) {
+		if (editor != null) {
+			IStatusLineManager statusLineManager = editor.getEditorSite().getActionBars().getStatusLineManager();
+			if (message == null) {
+				statusLineManager.setMessage(null);
+			} else {
+				statusLineManager.setMessage(Activator.getImage(imageIconKey), String.format(message, args));
+			}
 		}
 	}
 }

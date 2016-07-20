@@ -70,7 +70,7 @@ class WorkspaceFileDocument extends ActiveDocument {
 		inheritedEncoding = null;
 		detectedEncoding = null;
 		contentTypeEncoding = null;
-		lineEnding = null;
+		lineSeparator = null;
 
 		packageRoot.element = null;
 		packageRoot.encoding = null;
@@ -83,7 +83,7 @@ class WorkspaceFileDocument extends ActiveDocument {
 				if (contentDescription != null) {
 					contentTypeEncoding = contentDescription.getCharset();
 				}
-				lineEnding = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
+				lineSeparator = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
 
 				IEditorInput editorInput = editor.getEditorInput();
 				Object ele = AdapterManager.getDefault().getAdapter(editorInput, "org.eclipse.jdt.core.IJavaElement");

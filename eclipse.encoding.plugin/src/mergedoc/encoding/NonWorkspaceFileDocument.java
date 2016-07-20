@@ -58,7 +58,7 @@ class NonWorkspaceFileDocument extends ActiveDocument {
 		inheritedEncoding = null;
 		detectedEncoding = null;
 		contentTypeEncoding = null;
-		lineEnding = null;
+		lineSeparator = null;
 
 		if (text_file_store != null) {
 			inheritedEncoding = ResourcesPlugin.getEncoding();
@@ -67,7 +67,7 @@ class NonWorkspaceFileDocument extends ActiveDocument {
 			if (contentType != null) {
 				contentTypeEncoding = contentType.getDefaultCharset();
 			}
-			lineEnding = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
+			lineSeparator = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
 		}
 		// Just assume that the encoding information is updated.
 		return true;

@@ -53,7 +53,7 @@ class ClassFileDocument extends ActiveDocument {
 		inheritedEncoding = null;
 		detectedEncoding = null; // Can't take source InputStream
 		contentTypeEncoding = null;
-		lineEnding = null;
+		lineSeparator = null;
 
 		packageRoot.element = null;
 		packageRoot.encoding = null;
@@ -93,7 +93,7 @@ class ClassFileDocument extends ActiveDocument {
 
 			String content = getContentString();
 			if (content != null) {
-				lineEnding = Encodings.getLineEnding(new StringReader(content));
+				lineSeparator = Encodings.getLineEnding(new StringReader(content));
 			} else {
 				// Non source code, don't show.
 				currentEncoding = null;
@@ -110,9 +110,5 @@ class ClassFileDocument extends ActiveDocument {
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
-	}
-
-	@Override
-	public void warnSaveMessage(boolean showsWarn) {
 	}
 }

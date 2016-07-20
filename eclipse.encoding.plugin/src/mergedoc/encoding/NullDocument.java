@@ -39,7 +39,7 @@ class NullDocument extends ActiveDocument {
 		return null;
 	}
 	@Override
-	public String getLineEnding() {
+	public String getLineSeparator() {
 		return null;
 	}
 	@Override

@@ -83,7 +83,7 @@ class StorageFileDocument extends ActiveDocument {
 		inheritedEncoding = null;
 		detectedEncoding = null;
 		contentTypeEncoding = null;
-		lineEnding = null;
+		lineSeparator = null;
 
 		if (storage != null) {
 			detectedEncoding = Encodings.detectEncoding(getInputStream());
@@ -91,7 +91,7 @@ class StorageFileDocument extends ActiveDocument {
 			if (contentType != null) {
 				contentTypeEncoding = contentType.getDefaultCharset();
 			}
-			lineEnding = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
+			lineSeparator = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
 		}
 		// Just assume that the encoding information is updated.
 		return true;
@@ -105,9 +105,5 @@ class StorageFileDocument extends ActiveDocument {
 			// Closed stream
 			return null;
 		}
-	}
-
-	@Override
-	public void warnSaveMessage(boolean showsWarn) {
 	}
 }

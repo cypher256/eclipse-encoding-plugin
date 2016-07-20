@@ -1,5 +1,7 @@
 package mergedoc.encoding;
 
+import static java.lang.String.*;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +51,6 @@ public class EncodingControlContribution extends
 	private Label lineSeparatorLabel;
 	private Menu lineSeparatorPopupMenu;
 	private List<LineSeparatorItem> lineSeparatorItemList;
-	private String currentLineSeparator;
 
 	private static class EncodingItem {
 		public String encoding;
@@ -169,20 +170,28 @@ public class EncodingControlContribution extends
 	private void createEncodingMenu() {
 		
 		ActiveDocument doc = agent.getDocument();
-		encodingLabel.setText(doc.getCurrentEncoding() == null ? "" : doc.getCurrentEncoding());
+		if (doc.getCurrentEncoding() == null) {
+			encodingLabel.setText(null);
+			encodingLabel.setToolTipText(null);
+			encodingLabel.setImage(null);
+			encodingLabel.setMenu(null);
+			return;
+		}
+		encodingLabel.setText(doc.getCurrentEncoding());
 		
 		if (doc.mismatchesEncoding() && pref().getBoolean(PREF_AUTODETECT_WARN)) {
+			String message = "Detected charset %s (Current setting: %s)";
+			doc.warnMessage(message, doc.getDetectedEncoding(), doc.getCurrentEncoding());
+			encodingLabel.setToolTipText(format(message, doc.getDetectedEncoding(), doc.getCurrentEncoding()));
 			encodingLabel.setImage(Activator.getImage("warn"));
-			doc.warnMessage("Detected encoding %s (Current setting: %s)",
-					doc.getDetectedEncoding(), doc.getCurrentEncoding());
 		} else {
-			encodingLabel.setImage(null);
 			doc.warnMessage(null);
-		}
-		if (doc.getCurrentEncoding() == null) {
-			encodingLabel.setMenu(null);
-			encodingLabel.setToolTipText(null);
-			return;
+			encodingLabel.setImage(null);
+			if (doc.canChangeFileEncoding()) {
+				encodingLabel.setToolTipText(format("Right-click to change the encoding of '%s'", doc.getFileName()));
+			} else {
+				encodingLabel.setToolTipText(null);
+			}
 		}
 
 		encodingList = IDEEncoding.getIDEEncodings();
@@ -190,12 +199,6 @@ public class EncodingControlContribution extends
 		addEncodingItem(doc.getInheritedEncoding());
 		addEncodingItem(doc.getDetectedEncoding());
 
-		if (doc.canChangeFileEncoding()) {
-			encodingLabel.setToolTipText(
-				String.format("Right-click to change the encoding of '%s'", doc.getFileName()));
-		} else {
-			encodingLabel.setToolTipText(null);
-		}
 		if (encodingPopupMenu != null && !encodingPopupMenu.isDisposed()) {
 			encodingLabel.setMenu(encodingPopupMenu);
 			return;
@@ -213,8 +216,8 @@ public class EncodingControlContribution extends
 				for (MenuItem item: encodingPopupMenu.getItems()) item.dispose();
 
 				// Do not allow changing encoding when the document is dirty.
+				warnSaveMessage(agent.isDocumentDirty() && doc.canChangeFileEncoding());
 				boolean enabledAction = !agent.isDocumentDirty() && doc.canChangeFileEncoding();
-				doc.warnSaveMessage(!enabledAction);
 				
 				createPreferenceMenu();
 				createShortcutMenu();
@@ -338,17 +341,26 @@ public class EncodingControlContribution extends
 			}
 		});
 	}
+
+	private void warnSaveMessage(boolean showsWarn) {
+		ActiveDocument doc = agent.getDocument();
+		if (showsWarn) {
+			doc.warnMessage("Editor must be saved before status bar action.");
+		} else {
+			doc.warnMessage(null);
+		}
+	}
 	
 	private void createLineSeparatorMenu() {
 		
 		ActiveDocument doc = agent.getDocument();
-		currentLineSeparator = doc.getLineEnding();
-		lineSeparatorLabel.setText(currentLineSeparator == null ? "" : currentLineSeparator);
-		if (currentLineSeparator == null) {
+		if (doc.getLineSeparator() == null) {
+			lineSeparatorLabel.setText(null);
 			lineSeparatorLabel.setMenu(null);
 			lineSeparatorLabel.setToolTipText(null);
 			return;
 		}
+		lineSeparatorLabel.setText(doc.getLineSeparator());
 
 		if (lineSeparatorItemList == null) {
 			lineSeparatorItemList = new ArrayList<LineSeparatorItem>();
@@ -380,8 +392,8 @@ public class EncodingControlContribution extends
 				for (MenuItem item: lineSeparatorPopupMenu.getItems()) item.dispose();
 
 				// Do not allow changing encoding when the document is dirty.
+				warnSaveMessage(agent.isDocumentDirty() && doc.canConvertLineEnding());
 				boolean enabledAction = !agent.isDocumentDirty() && doc.canConvertLineEnding();
-				doc.warnSaveMessage(!enabledAction);
 
 				// Add menu items.
 				for (final LineSeparatorItem lineEndingItem : lineSeparatorItemList) {
@@ -393,7 +405,7 @@ public class EncodingControlContribution extends
 					if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) && doc.mismatchesEncoding()) {
 						item.setEnabled(false);
 					}
-					if (lineEndingItem.value.equals(currentLineSeparator)) {
+					if (lineEndingItem.value.equals(doc.getLineSeparator())) {
 						item.setSelection(true);
 					}
 					item.setImage(Activator.getImage(lineEndingItem.value));
@@ -403,7 +415,7 @@ public class EncodingControlContribution extends
 						public void widgetSelected(SelectionEvent e) {
 							if (item.getSelection()) {
 								ActiveDocument doc = agent.getDocument();
-								doc.setLineEnding(lineEndingItem.value);
+								doc.setLineSeparator(lineEndingItem.value);
 							}
 						}
 					});
@@ -414,13 +426,15 @@ public class EncodingControlContribution extends
 	
 	private void createPreferenceMenu() {
 		
-		createToggleMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically");
+		createToggleMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically")
+			.setToolTipText("This only applies when the file properties encoding is not specified");
+		
 		createToggleMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
 		createToggleMenuItem(PREF_DISABLE_DANGER_OPERATION, "Autodetect: Disable Dangerous Operations");
 		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
 	
-	private void createToggleMenuItem(final String prefKey, String message) {
+	private MenuItem createToggleMenuItem(final String prefKey, String message) {
 		
 		final MenuItem item = new MenuItem(encodingPopupMenu, SWT.CHECK);
 		item.setText(message);
@@ -434,6 +448,7 @@ public class EncodingControlContribution extends
 				encodingInfoChanged();
 			}
 		});
+		return item;
 	}
 	
 	private void createShortcutMenu() {
