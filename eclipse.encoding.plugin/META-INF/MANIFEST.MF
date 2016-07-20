@@ -16,5 +16,5 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.ui
-Bundle-ClassPath: lib/juniversalchardet-2.0.0.jar,
+Bundle-ClassPath: lib/juniversalchardet-2.0.0-backport-java6.jar,
  .
