@@ -14,12 +14,12 @@ import org.eclipse.ui.IEditorPart;
  * This handler handles InternalClassFileEditorInput for ActiveDocumentAgent.
  * @author Shinji Kashihara
  */
-class ClassFileEditorInputHandler extends ActiveDocumentHandler {
+class ClassFileDocument extends ActiveDocument {
 
 	private Object classFile;
 	private PackageRoot packageRoot = new PackageRoot();
 
-	public ClassFileEditorInputHandler(IEditorPart part, IActiveDocumentAgentCallback callback) {
+	public ClassFileDocument(IEditorPart part, IActiveDocumentAgentCallback callback) {
 		super(part, callback);
 		IEditorInput editorInput = part.getEditorInput();
 		try {

@@ -7,9 +7,9 @@ import org.eclipse.ui.IEditorPart;
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class NullDocumentHandler extends ActiveDocumentHandler {
+class NullDocument extends ActiveDocument {
 
-	public NullDocumentHandler(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+	public NullDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
 	}
 	@Override

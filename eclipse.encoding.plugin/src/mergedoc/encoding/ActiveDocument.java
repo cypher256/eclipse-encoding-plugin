@@ -15,11 +15,11 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.editors.text.IEncodingSupport;
 
 /**
- * This handler handles editors which support IEncodingSupport for ActiveDocumentAgent.
+ * This document handles editors which support IEncodingSupport for ActiveDocumentAgent.
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class ActiveDocumentHandler {
+class ActiveDocument {
 
 	protected IActiveDocumentAgentCallback callback;
 	protected IEditorPart editor;
@@ -30,7 +30,7 @@ class ActiveDocumentHandler {
 	protected String contentTypeEncoding;
 	protected String lineEnding;
 
-	public ActiveDocumentHandler(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+	public ActiveDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		init(editor, callback);
 	}
 
@@ -227,26 +227,30 @@ class ActiveDocumentHandler {
 		setEncoding(newEncoding);
 	}
 
-	public void warnSaveMessage(boolean showsWarn) {
-		if (editor != null) {
-			IStatusLineManager statusLineManager = editor.getEditorSite().getActionBars().getStatusLineManager();
-			if (showsWarn) {
-				statusLineManager.setMessage(Activator.getImage("warn"),
-					String.format("Editor must be saved before status bar action."));
-			} else {
-				statusLineManager.setMessage(null);
-			}
-		}
-	}
-
-	public void infoMessage(String message, Object... args) {
+	private void setMessage(String imageIconKey, String message, Object... args) {
 		if (editor != null) {
 			IStatusLineManager statusLineManager = editor.getEditorSite().getActionBars().getStatusLineManager();
 			if (message == null) {
 				statusLineManager.setMessage(null);
 			} else {
-				statusLineManager.setMessage(Activator.getImage("info"), String.format(message, args));
+				statusLineManager.setMessage(Activator.getImage(imageIconKey), String.format(message, args));
 			}
+		}
+	}
+
+	public void infoMessage(String message, Object... args) {
+		setMessage("info", message, args);
+	}
+
+	public void warnMessage(String message, Object... args) {
+		setMessage("warn", message, args);
+	}
+
+	public void warnSaveMessage(boolean showsWarn) {
+		if (showsWarn) {
+			warnMessage("Editor must be saved before status bar action.");
+		} else {
+			setMessage(null, null);
 		}
 	}
 }

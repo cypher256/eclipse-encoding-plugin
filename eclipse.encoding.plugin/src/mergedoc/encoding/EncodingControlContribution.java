@@ -40,19 +40,18 @@ public class EncodingControlContribution extends
 
 	// The agent is responsible for monitoring the encoding information of the active document.
 	private ActiveDocumentAgent agent = new ActiveDocumentAgent(this);
-	private Composite status_bar;
+	private Composite statusBar;
 
-	private CLabel file_encoding_label;
-	private Menu file_encoding_popup_menu;
-	private List<String> file_encoding_list;
-	private String current_file_encoding;
+	private CLabel encodingLabel;
+	private Menu encodingPopupMenu;
+	private List<String> encodingList;
 
-	private Label line_ending_label;
-	private Menu line_ending_popup_menu;
-	private List<LineEndingItem> line_ending_list;
-	private String current_line_ending;
+	private Label lineSeparatorLabel;
+	private Menu lineSeparatorPopupMenu;
+	private List<LineSeparatorItem> lineSeparatorItemList;
+	private String currentLineSeparator;
 
-	private static class FileEncodingItem {
+	private static class EncodingItem {
 		public String encoding;
 		public boolean isInheritance;
 		public boolean isAutodetect;
@@ -60,10 +59,10 @@ public class EncodingControlContribution extends
 		public String menuText;
 	}
 
-	private static class LineEndingItem {
+	private static class LineSeparatorItem {
 		public String value;
 		public String desc;
-		public LineEndingItem(String value, String desc) {
+		public LineSeparatorItem(String value, String desc) {
 			super();
 			this.value = value;
 			this.desc = desc;
@@ -87,62 +86,51 @@ public class EncodingControlContribution extends
 	protected Control createControl(Composite parent) {
 
 		agent.start(getWorkbenchWindow());
-		status_bar = new Composite(parent, SWT.NONE);
+		statusBar = new Composite(parent, SWT.NONE);
 
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 3;
 		gridLayout.marginHeight = 0;
-		status_bar.setLayout(gridLayout);
+		statusBar.setLayout(gridLayout);
 		{
-			file_encoding_label = new CLabel(status_bar, SWT.LEFT);
+			encodingLabel = new CLabel(statusBar, SWT.LEFT);
 			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_CENTER);
 			gridData.widthHint = 100;
-			file_encoding_label.setLayoutData(gridData);
+			encodingLabel.setLayoutData(gridData);
 		}
 		{
-			Label separator = new Label(status_bar, SWT.SEPARATOR | SWT.VERTICAL);
+			Label separator = new Label(statusBar, SWT.SEPARATOR | SWT.VERTICAL);
 			separator.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{
-			line_ending_label = new Label(status_bar, SWT.LEFT);
+			lineSeparatorLabel = new Label(statusBar, SWT.LEFT);
 			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_CENTER);
 			gridData.widthHint = 40;
-			line_ending_label.setLayoutData(gridData);
+			lineSeparatorLabel.setLayoutData(gridData);
 		}
 		
 		fillControl();
-		return status_bar;
-	}
-
-	private void addFileEncodingItem(String encoding) {
-		if (encoding != null) {
-			for (String e : file_encoding_list) {
-				if (Encodings.areCharsetsEqual(e, encoding)) {
-					return;
-				}
-			}
-			file_encoding_list.add(encoding);
-			Collections.sort(file_encoding_list);
-		}
+		return statusBar;
 	}
 
 	private void fillControl() {
 
-		ActiveDocumentHandler handler = agent.getHandler();
+		ActiveDocument doc = agent.getDocument();
 		if (
 			!agent.isDocumentDirty() &&
-			handler.canChangeFileEncoding() &&
-			handler.mismatchesEncoding() &&
+			doc.canChangeFileEncoding() &&
+			doc.mismatchesEncoding() &&
 			pref().getBoolean(PREF_AUTODETECT_CHANGE)
 		) {
-			String detectedEncoding = handler.getDetectedEncoding();
-			IFile file = handler.getFile();
+			String message = "Encoding has been set %s automatically.";
+			String detectedEncoding = doc.getDetectedEncoding();
+			IFile file = doc.getFile();
 			if (file == null) {
 				// Non workspace file, mismatch workspace preferences
 				String workspaceEncoding = ResourcesPlugin.getEncoding();
 				if (!Encodings.areCharsetsEqual(detectedEncoding, workspaceEncoding)) {
-					handler.setEncoding(detectedEncoding);
-					handler.infoMessage("Encoding has been set %s automatically.", detectedEncoding);
+					doc.setEncoding(detectedEncoding);
+					doc.infoMessage(message, detectedEncoding);
 					return;
 				}
 			}
@@ -151,8 +139,8 @@ public class EncodingControlContribution extends
 				try {
 					String fileEncoding = file.getCharset(false);
 					if (fileEncoding == null) {
-						handler.setEncoding(detectedEncoding);
-						handler.infoMessage("Encoding has been set %s automatically.", detectedEncoding);
+						doc.setEncoding(detectedEncoding);
+						doc.infoMessage(message, detectedEncoding);
 						return;
 					}
 				} catch (CoreException e) {
@@ -161,72 +149,86 @@ public class EncodingControlContribution extends
 			}
 		}
 		
-		createFileEncodingMenu();
-		createFileEndingMenu();
+		createEncodingMenu();
+		createLineSeparatorMenu();
+	}
+
+	private void addEncodingItem(String encoding) {
+		if (encoding != null) {
+			for (String e : encodingList) {
+				if (Encodings.areCharsetsEqual(e, encoding)) {
+					return;
+				}
+			}
+			encodingList.add(encoding);
+			Collections.sort(encodingList);
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void createFileEncodingMenu() {
+	private void createEncodingMenu() {
 		
-		ActiveDocumentHandler handler = agent.getHandler();
-		current_file_encoding = handler.getCurrentEncoding();
-		file_encoding_label.setText(current_file_encoding == null ? "" : current_file_encoding);
+		ActiveDocument doc = agent.getDocument();
+		encodingLabel.setText(doc.getCurrentEncoding() == null ? "" : doc.getCurrentEncoding());
 		
-		if (handler.mismatchesEncoding() && pref().getBoolean(PREF_AUTODETECT_WARN)) {
-			file_encoding_label.setImage(Activator.getImage("warn"));
+		if (doc.mismatchesEncoding() && pref().getBoolean(PREF_AUTODETECT_WARN)) {
+			encodingLabel.setImage(Activator.getImage("warn"));
+			doc.warnMessage("Detected encoding %s (Current setting: %s)",
+					doc.getDetectedEncoding(), doc.getCurrentEncoding());
 		} else {
-			file_encoding_label.setImage(null);
+			encodingLabel.setImage(null);
+			doc.warnMessage(null);
 		}
-		if (current_file_encoding == null) {
-			file_encoding_label.setMenu(null);
-			file_encoding_label.setToolTipText(null);
+		if (doc.getCurrentEncoding() == null) {
+			encodingLabel.setMenu(null);
+			encodingLabel.setToolTipText(null);
 			return;
 		}
 
-		file_encoding_list = IDEEncoding.getIDEEncodings();
-		addFileEncodingItem(current_file_encoding);
-		addFileEncodingItem(handler.getInheritedEncoding());
-		addFileEncodingItem(handler.getDetectedEncoding());
+		encodingList = IDEEncoding.getIDEEncodings();
+		addEncodingItem(doc.getCurrentEncoding());
+		addEncodingItem(doc.getInheritedEncoding());
+		addEncodingItem(doc.getDetectedEncoding());
 
-		if (handler.canChangeFileEncoding()) {
-			file_encoding_label.setToolTipText(
-				String.format("Right-click to change the encoding of '%s'", handler.getFileName()));
+		if (doc.canChangeFileEncoding()) {
+			encodingLabel.setToolTipText(
+				String.format("Right-click to change the encoding of '%s'", doc.getFileName()));
 		} else {
-			file_encoding_label.setToolTipText(null);
+			encodingLabel.setToolTipText(null);
 		}
-		if (file_encoding_popup_menu != null && !file_encoding_popup_menu.isDisposed()) {
-			file_encoding_label.setMenu(file_encoding_popup_menu);
+		if (encodingPopupMenu != null && !encodingPopupMenu.isDisposed()) {
+			encodingLabel.setMenu(encodingPopupMenu);
 			return;
 		}
-		file_encoding_popup_menu = new Menu(file_encoding_label);
-		file_encoding_label.setMenu(file_encoding_popup_menu);
+		encodingPopupMenu = new Menu(encodingLabel);
+		encodingLabel.setMenu(encodingPopupMenu);
 		
 		// Add the menu items dynamically
-		file_encoding_popup_menu.addMenuListener(new MenuAdapter() {
+		encodingPopupMenu.addMenuListener(new MenuAdapter() {
 			@Override
 			public void menuShown(MenuEvent e) {
-				final ActiveDocumentHandler handler = agent.getHandler();
+				final ActiveDocument doc = agent.getDocument();
 
 				// Remove existing menu items.
-				for (MenuItem item: file_encoding_popup_menu.getItems()) item.dispose();
+				for (MenuItem item: encodingPopupMenu.getItems()) item.dispose();
 
 				// Do not allow changing encoding when the document is dirty.
-				boolean enabledAction = !agent.isDocumentDirty() && handler.canChangeFileEncoding();
-				handler.warnSaveMessage(!enabledAction);
+				boolean enabledAction = !agent.isDocumentDirty() && doc.canChangeFileEncoding();
+				doc.warnSaveMessage(!enabledAction);
 				
 				createPreferenceMenu();
 				createShortcutMenu();
 
 				// Create encoding menu meta data
-				final List<FileEncodingItem> encodingList = new ArrayList<FileEncodingItem>();
-				for (final String encoding : file_encoding_list) {
+				final List<EncodingItem> encodingItemList = new ArrayList<EncodingItem>();
+				for (final String encoding : encodingList) {
 
-					FileEncodingItem i = new FileEncodingItem();
-					encodingList.add(i);
+					EncodingItem i = new EncodingItem();
+					encodingItemList.add(i);
 					i.encoding = encoding;
-					i.isInheritance = Encodings.areCharsetsEqual(encoding, handler.getInheritedEncoding());
-					i.isAutodetect  = Encodings.areCharsetsEqual(encoding, handler.getDetectedEncoding());
-					i.isContentType = Encodings.areCharsetsEqual(encoding, handler.getContentTypeEncoding());
+					i.isInheritance = Encodings.areCharsetsEqual(encoding, doc.getInheritedEncoding());
+					i.isAutodetect  = Encodings.areCharsetsEqual(encoding, doc.getDetectedEncoding());
+					i.isContentType = Encodings.areCharsetsEqual(encoding, doc.getContentTypeEncoding());
 
 					StringBuilder sb = new StringBuilder();
 					if (i.isAutodetect) {
@@ -244,20 +246,21 @@ public class EncodingControlContribution extends
 					}
 				}
 
-				// Create convert charset menu items.
-				MenuItem charsetParentItem = new MenuItem(file_encoding_popup_menu, SWT.CASCADE);
-				charsetParentItem.setText(String.format("Convert Charset %s to", current_file_encoding));
+				// Convert Charset
+				MenuItem charsetParentItem = new MenuItem(encodingPopupMenu, SWT.CASCADE);
+				charsetParentItem.setText(String.format("Convert Charset %s to", doc.getCurrentEncoding()));
 				charsetParentItem.setImage(Activator.getImage("convert_charset"));
 				charsetParentItem.setEnabled(enabledAction);
-				if (handler.mismatchesEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+				if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) &&
+						(doc.getDetectedEncoding() == null || doc.mismatchesEncoding())) {
 					charsetParentItem.setEnabled(false);
 				}
 				Menu convertMenu = new Menu(charsetParentItem);
 				charsetParentItem.setMenu(convertMenu);
 
-				for (final FileEncodingItem i : encodingList) {
+				for (final EncodingItem i : encodingItemList) {
 
-					if (Encodings.areCharsetsEqual(i.encoding, current_file_encoding)) {
+					if (Encodings.areCharsetsEqual(i.encoding, doc.getCurrentEncoding())) {
 						continue;
 					}
 					MenuItem item = new MenuItem(convertMenu, SWT.NONE);
@@ -267,66 +270,65 @@ public class EncodingControlContribution extends
 					item.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
-							handler.convertCharset(i.encoding);
+							doc.convertCharset(i.encoding);
 						}
 					});
 				}
 
-				// Create change encoding property menu items.
-				MenuItem encodingParentItem = new MenuItem(file_encoding_popup_menu, SWT.CASCADE);
+				// Change Encoding
+				MenuItem encodingParentItem = new MenuItem(encodingPopupMenu, SWT.CASCADE);
 				encodingParentItem.setText("Change Encoding to");
 				encodingParentItem.setEnabled(enabledAction);
-				if (handler.matchesEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+				if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) && doc.matchesEncoding()) {
 					encodingParentItem.setEnabled(false);
 				}
 				encodingParentItem.setImage(Activator.getImage("change_encoding"));
 				Menu encodingMenu = new Menu(encodingParentItem);
 				encodingParentItem.setMenu(encodingMenu);
 
-				for (final FileEncodingItem i : encodingList) {
+				for (final EncodingItem i : encodingItemList) {
 
 					final MenuItem item = new MenuItem(encodingMenu, SWT.RADIO);
 					item.setText(i.menuText);
 					item.setImage(Encodings.getImage(i.encoding));
-					if (Encodings.areCharsetsEqual(i.encoding, current_file_encoding)) {
+					if (Encodings.areCharsetsEqual(i.encoding, doc.getCurrentEncoding())) {
 						item.setSelection(true);
 					}
 					// Converted to one line and freeze on big file
-					else if (i.encoding.startsWith("UTF-16") && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+					else if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) && i.encoding.startsWith("UTF-16")) {
 						item.setEnabled(false);
 					}
 					item.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							if (item.getSelection()) {
-								handler.setEncoding(i.encoding);
+								doc.setEncoding(i.encoding);
 							}
 						}
 					});
 				}
 
 				// Create change encoding for autodetect
-				final MenuItem detectItem = new MenuItem(file_encoding_popup_menu, SWT.NONE);
+				final MenuItem detectItem = new MenuItem(encodingPopupMenu, SWT.NONE);
 				detectItem.setImage(Activator.getImage("autodetect"));
 				
-				final String detectedEncoding = handler.getDetectedEncoding();
-				if (detectedEncoding == null) {
+				if (doc.getDetectedEncoding() == null) {
 					detectItem.setText("Change Encoding (Cannot Autodetect)");
 					detectItem.setEnabled(false);
 				}
-				else if (handler.matchesEncoding()) {
+				else if (doc.matchesEncoding()) {
 					detectItem.setText("Change Encoding (Matches Autodetect)");
 					detectItem.setEnabled(false);
 				}
 				else {
-					detectItem.setText(String.format("Change Encoding to %s (Autodetect)", detectedEncoding));
+					detectItem.setText(String.format("Change Encoding to %s (Autodetect)", doc.getDetectedEncoding()));
 					detectItem.setEnabled(enabledAction);
 					detectItem.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
-							for (FileEncodingItem i : encodingList) {
-								if (Encodings.areCharsetsEqual(i.encoding, detectedEncoding)) {
-									handler.setEncoding(i.encoding);
+							for (EncodingItem i : encodingItemList) {
+								if (Encodings.areCharsetsEqual(i.encoding, doc.getDetectedEncoding())) {
+									doc.setEncoding(i.encoding);
 									break;
 								}
 							}
@@ -337,60 +339,61 @@ public class EncodingControlContribution extends
 		});
 	}
 	
-	private void createFileEndingMenu() {
+	private void createLineSeparatorMenu() {
 		
-		ActiveDocumentHandler handler = agent.getHandler();
-		current_line_ending = handler.getLineEnding();
-		line_ending_label.setText(current_line_ending == null ? "" : current_line_ending);
-		if (current_line_ending == null) {
-			line_ending_label.setMenu(null);
-			line_ending_label.setToolTipText(null);
+		ActiveDocument doc = agent.getDocument();
+		currentLineSeparator = doc.getLineEnding();
+		lineSeparatorLabel.setText(currentLineSeparator == null ? "" : currentLineSeparator);
+		if (currentLineSeparator == null) {
+			lineSeparatorLabel.setMenu(null);
+			lineSeparatorLabel.setToolTipText(null);
 			return;
 		}
 
-		if (line_ending_list == null) {
-			line_ending_list = new ArrayList<LineEndingItem>();
-			line_ending_list.add(new LineEndingItem("CRLF", "(\\r\\n, 0D0A, Windows)"));
-			line_ending_list.add(new LineEndingItem("CR", "(\\r, 0D)"));
-			line_ending_list.add(new LineEndingItem("LF", "(\\n, 0A, Unix)"));
+		if (lineSeparatorItemList == null) {
+			lineSeparatorItemList = new ArrayList<LineSeparatorItem>();
+			lineSeparatorItemList.add(new LineSeparatorItem("CRLF", "(\\r\\n, 0D0A, Windows)"));
+			lineSeparatorItemList.add(new LineSeparatorItem("CR", "(\\r, 0D)"));
+			lineSeparatorItemList.add(new LineSeparatorItem("LF", "(\\n, 0A, Unix)"));
 		}
 
-		if (handler.canConvertLineEnding()) {
-			line_ending_label.setToolTipText(
-				String.format("Right-click to convert the line ending of '%s'", handler.getFileName()));
+		if (doc.canConvertLineEnding()) {
+			lineSeparatorLabel.setToolTipText(
+				String.format("Right-click to convert the line ending of '%s'", doc.getFileName()));
 		} else {
-			line_ending_label.setToolTipText(null);
+			lineSeparatorLabel.setToolTipText(null);
 		}
-		if (line_ending_popup_menu != null && !line_ending_popup_menu.isDisposed()) {
-			line_ending_label.setMenu(line_ending_popup_menu);
+		if (lineSeparatorPopupMenu != null && !lineSeparatorPopupMenu.isDisposed()) {
+			lineSeparatorLabel.setMenu(lineSeparatorPopupMenu);
 			return;
 		}
-		line_ending_popup_menu = new Menu(line_ending_label);
-		line_ending_label.setMenu(line_ending_popup_menu);
+		lineSeparatorPopupMenu = new Menu(lineSeparatorLabel);
+		lineSeparatorLabel.setMenu(lineSeparatorPopupMenu);
 
 		// Add the menu items dynamically.
-		line_ending_popup_menu.addMenuListener(new MenuAdapter() {
+		lineSeparatorPopupMenu.addMenuListener(new MenuAdapter() {
 			@Override
 			public void menuShown(MenuEvent e) {
-				ActiveDocumentHandler handler = agent.getHandler();
+				ActiveDocument doc = agent.getDocument();
 
 				// Remove existing menu items.
-				for (MenuItem item: line_ending_popup_menu.getItems()) item.dispose();
+				for (MenuItem item: lineSeparatorPopupMenu.getItems()) item.dispose();
 
 				// Do not allow changing encoding when the document is dirty.
-				boolean enabledAction = !agent.isDocumentDirty() && handler.canConvertLineEnding();
-				handler.warnSaveMessage(!enabledAction);
+				boolean enabledAction = !agent.isDocumentDirty() && doc.canConvertLineEnding();
+				doc.warnSaveMessage(!enabledAction);
 
 				// Add menu items.
-				for (final LineEndingItem lineEndingItem : line_ending_list) {
+				for (final LineSeparatorItem lineEndingItem : lineSeparatorItemList) {
 
-					final MenuItem item = new MenuItem(line_ending_popup_menu, SWT.RADIO);
+					final MenuItem item = new MenuItem(lineSeparatorPopupMenu, SWT.RADIO);
 					item.setText(lineEndingItem.value + " " + lineEndingItem.desc);
 					item.setEnabled(enabledAction);
-					if (handler.mismatchesEncoding() && pref().getBoolean(PREF_DISABLE_DANGER_OPERATION)) {
+					if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) &&
+							(doc.getDetectedEncoding() == null || doc.mismatchesEncoding())) {
 						item.setEnabled(false);
 					}
-					if (lineEndingItem.value.equals(current_line_ending)) {
+					if (lineEndingItem.value.equals(currentLineSeparator)) {
 						item.setSelection(true);
 					}
 					item.setImage(Activator.getImage(lineEndingItem.value));
@@ -399,8 +402,8 @@ public class EncodingControlContribution extends
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							if (item.getSelection()) {
-								ActiveDocumentHandler handler = agent.getHandler();
-								handler.setLineEnding(lineEndingItem.value);
+								ActiveDocument doc = agent.getDocument();
+								doc.setLineEnding(lineEndingItem.value);
 							}
 						}
 					});
@@ -411,15 +414,15 @@ public class EncodingControlContribution extends
 	
 	private void createPreferenceMenu() {
 		
-		createCheckMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically");
-		createCheckMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
-		createCheckMenuItem(PREF_DISABLE_DANGER_OPERATION, "Autodetect: Disable Dangerous Operations");
-		new MenuItem(file_encoding_popup_menu, SWT.SEPARATOR);
+		createToggleMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically");
+		createToggleMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
+		createToggleMenuItem(PREF_DISABLE_DANGER_OPERATION, "Autodetect: Disable Dangerous Operations");
+		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
 	
-	private void createCheckMenuItem(final String prefKey, String message) {
+	private void createToggleMenuItem(final String prefKey, String message) {
 		
-		final MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.CHECK);
+		final MenuItem item = new MenuItem(encodingPopupMenu, SWT.CHECK);
 		item.setText(message);
 		item.setSelection(pref().getBoolean(prefKey));
 		item.addSelectionListener(new SelectionAdapter() {
@@ -428,17 +431,18 @@ public class EncodingControlContribution extends
 				boolean sel = !pref().getBoolean(prefKey);
 				item.setSelection(sel);
 				pref().setValue(prefKey, sel);
+				encodingInfoChanged();
 			}
 		});
 	}
 	
 	private void createShortcutMenu() {
 
-		ActiveDocumentHandler handler = agent.getHandler();
+		ActiveDocument doc = agent.getDocument();
 
 		// Menu for Open Workspace Preferences
 		{
-			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
+			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
 			item.setText("Workspace Preferences..." + getEncodingLabel(ResourcesPlugin.getEncoding()));
 			item.setImage(Activator.getImage("workspace"));
 			item.addSelectionListener(new SelectionAdapter() {
@@ -452,7 +456,7 @@ public class EncodingControlContribution extends
 
 		// Menu for Open Project Properties
 		{
-			final IProject project = handler.getProject();
+			final IProject project = doc.getProject();
 			String encoding = null;
 			if (project != null) {
 				try {
@@ -464,7 +468,7 @@ public class EncodingControlContribution extends
 					encoding = "Inheritance";
 				}
 			}
-			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
+			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
 			item.setText("Project Properties..." + getEncodingLabel(encoding));
 			item.setImage(Activator.getImage("project"));
 			item.setEnabled(project != null);
@@ -479,13 +483,13 @@ public class EncodingControlContribution extends
 		}
 
 		// Menu for Open src/jar Package Root Properties
-		final PackageRoot packageRoot = handler.getPackageRoot();
+		final PackageRoot packageRoot = doc.getPackageRoot();
 		if (packageRoot != null && packageRoot.element != null) {
 			String encoding = packageRoot.encoding;
 			if (encoding == null) {
 				encoding = "Inheritance";
 			}
-			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
+			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
 			item.setText("Package Root Properties..." + getEncodingLabel(encoding));
 			item.setImage(Activator.getImage("root"));
 			item.addSelectionListener(new SelectionAdapter() {
@@ -500,7 +504,7 @@ public class EncodingControlContribution extends
 
 		// Menu for Open File Properties
 		{
-			final IFile file = handler.getFile();
+			final IFile file = doc.getFile();
 			String encoding = null;
 			if (file != null) {
 				try {
@@ -512,7 +516,7 @@ public class EncodingControlContribution extends
 					encoding = "Inheritance";
 				}
 			}
-			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
+			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
 			item.setText("File Properties..." + getEncodingLabel(encoding));
 			item.setImage(Activator.getImage("file"));
 			item.setEnabled(file != null);
@@ -528,14 +532,14 @@ public class EncodingControlContribution extends
 
 		// Menu for Open Content Type Preferences
 		{
-			String encoding = handler.getContentTypeEncoding();
+			String encoding = doc.getContentTypeEncoding();
 			if (encoding == null) {
 				encoding = "Not Set";
 			}
-			MenuItem item = new MenuItem(file_encoding_popup_menu, SWT.NONE);
+			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
 			item.setText("Content Types Preferences..." + getEncodingLabel(encoding));
 			item.setImage(Activator.getImage("content"));
-			item.setEnabled(handler.enabledContentTypeEnding());
+			item.setEnabled(doc.enabledContentTypeEnding());
 			item.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -544,7 +548,7 @@ public class EncodingControlContribution extends
 				}
 			});
 		}
-		new MenuItem(file_encoding_popup_menu, SWT.SEPARATOR);
+		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
 
 	private String getEncodingLabel(String encoding) {
@@ -582,7 +586,7 @@ public class EncodingControlContribution extends
 				IContributionManager manager = getParent();
 				if (manager != null) {
 					manager.update(true);
-				} else if (!status_bar.isDisposed()) {
+				} else if (!statusBar.isDisposed()) {
 					fillControl();
 				}
 			}

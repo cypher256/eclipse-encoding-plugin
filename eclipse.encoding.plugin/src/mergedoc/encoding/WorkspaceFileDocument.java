@@ -23,12 +23,12 @@ import org.eclipse.ui.IFileEditorInput;
  * @author Shinji Kashihara
  */
 @SuppressWarnings("restriction")
-class WorkspaceTextFileHandler extends ActiveDocumentHandler {
+class WorkspaceFileDocument extends ActiveDocument {
 
 	private IFile file;
 	private PackageRoot packageRoot = new PackageRoot();
 
-	public WorkspaceTextFileHandler(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+	public WorkspaceFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
 		if (!(editor.getEditorInput() instanceof IFileEditorInput)) {
 			throw new IllegalArgumentException("part must provide IFileEditorInput.");

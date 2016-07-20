@@ -29,8 +29,8 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	// Callback for this agent.
 	private IActiveDocumentAgentCallback callback;
 
-	// The current handler for the agent.
-	private ActiveDocumentHandler currentHandler;
+	// The current document for the agent.
+	private ActiveDocument currentDocument;
 
 	// Indicate whether the agent has started monitoring the encoding of the active document.
 	private boolean isStarted = false;
@@ -67,18 +67,18 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	 * @return true/false
 	 */
 	public boolean isDocumentDirty() {
-		return currentHandler != null && currentHandler.getEditor() != null && currentHandler.getEditor().isDirty();
+		return currentDocument != null && currentDocument.getEditor() != null && currentDocument.getEditor().isDirty();
 	}
 
-	public ActiveDocumentHandler getHandler() {
-		return currentHandler;
+	public ActiveDocument getDocument() {
+		return currentDocument;
 	}
 
 	/**
 	 * Get a handler for an editor.
 	 * @return a specific handler, or NullDocumentHandler if there is no specific handler for an editor.
 	 */
-	private ActiveDocumentHandler getHandler(IEditorPart editor) {
+	private ActiveDocument getHandler(IEditorPart editor) {
 
 		if (editor != null && editor.getAdapter(IEncodingSupport.class) != null) {
 			
@@ -92,25 +92,25 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 
 			IEditorInput editorInput = editor.getEditorInput();
 			if (editorInput instanceof IFileEditorInput) {
-				return new WorkspaceTextFileHandler(editor, callback);
+				return new WorkspaceFileDocument(editor, callback);
 			}
 			else if (editorInput instanceof FileStoreEditorInput) {
-				return new NonWorkspaceTextFileHandler(editor, callback);
+				return new NonWorkspaceFileDocument(editor, callback);
 			}
 			else if (editorInput instanceof IStorageEditorInput) {
 				// Non class file resources in jar
 				try {
-					return new StorageEditorInputHandler(editor, callback);
+					return new StorageFileDocument(editor, callback);
 				} catch (CoreException e) {
 					// Fallback
-					return new ActiveDocumentHandler(editor, callback);
+					return new ActiveDocument(editor, callback);
 				}
 			} else if (editorInput.getClass().getSimpleName().equals("InternalClassFileEditorInput")) {
 				// Class file in jar
-				return new ClassFileEditorInputHandler(editor, callback);
+				return new ClassFileDocument(editor, callback);
 			}
 		}
-		return new NullDocumentHandler(editor, callback);
+		return new NullDocument(editor, callback);
 	}
 
 	/**
@@ -156,21 +156,21 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	 * This method helps to add/remove IPropertyListener as needed.
 	 * @param handler
 	 */
-	private void setCurrentHandler(ActiveDocumentHandler handler) {
+	private void setCurrentHandler(ActiveDocument handler) {
 
 		if (handler == null) throw new IllegalArgumentException("handler must not be null.");
 
 		// Remove IPropertyListener from the old editor.
-		if (currentHandler != null) {
-			IEditorPart editor = currentHandler.getEditor();
+		if (currentDocument != null) {
+			IEditorPart editor = currentDocument.getEditor();
 			if (editor != null) {
 				editor.removePropertyListener(this);
 			}
 		}
-		currentHandler = handler;
+		currentDocument = handler;
 
 		// Add IPropertyListener to the new editor.
-		IEditorPart editor = currentHandler.getEditor();
+		IEditorPart editor = currentDocument.getEditor();
 		if (editor != null) {
 			editor.addPropertyListener(this);
 		}
@@ -182,7 +182,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	private void checkActiveEditor() {
 
 		IEditorPart active_editor = getActiveEditor();
-		if (active_editor != currentHandler.getEditor()) {
+		if (active_editor != currentDocument.getEditor()) {
 			// Get a new handler for the active editor, and invoke the callback.
 			setCurrentHandler(getHandler(active_editor));
 			callback.encodingInfoChanged();
@@ -199,7 +199,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 		}
 		else {
 			// Pass the event to the handler.
-			currentHandler.propertyChanged(source, propId);
+			currentDocument.propertyChanged(source, propId);
 		}
 	}
 

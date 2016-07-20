@@ -18,12 +18,12 @@ import org.eclipse.ui.IStorageEditorInput;
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class StorageEditorInputHandler extends ActiveDocumentHandler {
+class StorageFileDocument extends ActiveDocument {
 
 	// The storage object associated with the editor.
 	private IStorage storage = null;
 
-	public StorageEditorInputHandler(IEditorPart part, IActiveDocumentAgentCallback callback) throws CoreException {
+	public StorageFileDocument(IEditorPart part, IActiveDocumentAgentCallback callback) throws CoreException {
 		
 		super(part, callback);
 		if (!(part.getEditorInput() instanceof IStorageEditorInput)) {

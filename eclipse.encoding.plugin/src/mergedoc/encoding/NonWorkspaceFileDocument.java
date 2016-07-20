@@ -22,12 +22,12 @@ import org.eclipse.ui.texteditor.IDocumentProviderExtension;
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class NonWorkspaceTextFileHandler extends ActiveDocumentHandler {
+class NonWorkspaceFileDocument extends ActiveDocument {
 
 	// The text file associated with the editor.
 	private IFileStore text_file_store = null;
 
-	public NonWorkspaceTextFileHandler(IEditorPart part, IActiveDocumentAgentCallback callback) {
+	public NonWorkspaceFileDocument(IEditorPart part, IActiveDocumentAgentCallback callback) {
 		super(part, callback);
 		if (!(part.getEditorInput() instanceof FileStoreEditorInput)) {
 			throw new IllegalArgumentException("part must provide FileStoreEditorInput.");
