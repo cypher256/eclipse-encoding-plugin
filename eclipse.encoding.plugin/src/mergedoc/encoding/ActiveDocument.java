@@ -181,10 +181,10 @@ class ActiveDocument {
 	}
 
 	protected InputStream getInputStream() {
-		throw new UnsupportedOperationException("Not implements getInputStream method.");
+		throw new UnsupportedOperationException("Non implements getInputStream method.");
 	}
 	protected void setContentString(String content, String storeEncoding) {
-		throw new UnsupportedOperationException("Not implements setContentString method.");
+		throw new UnsupportedOperationException("Non implements setContentString method.");
 	}
 
 	// Note: Process on String, not stream. Unsupport big file.
