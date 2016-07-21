@@ -558,6 +558,7 @@ public class EncodingControlContribution extends
 		
 		// File Creation Preferences
 		{
+			// Null if non plugin for editor
 			IContentDescription contentDescription = doc.getContentDescription();
 			if (contentDescription != null) {
 				
@@ -577,7 +578,7 @@ public class EncodingControlContribution extends
 				final String preferencePageId = contentTypePrefMap.get(contentDescription.getContentType().getId());
 				if (preferencePageId != null) {
 					
-					// Key: preferencePageId suffix, Value: encoding
+					// Key: preferencePageId suffix, Value: encoding preference pluginId
 					Map<String, String> creationEncodingMap = new HashMap<String, String>() {{
 						put("json",	"org.eclipse.wst.json.core");
 						put("html",	"org.eclipse.wst.html.core");

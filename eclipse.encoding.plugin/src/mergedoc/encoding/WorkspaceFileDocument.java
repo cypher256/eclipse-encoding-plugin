@@ -57,8 +57,7 @@ class WorkspaceFileDocument extends ActiveDocument {
 		try {
 			return file.getContentDescription();
 		} catch (ResourceException e) {
-			Activator.info(e.getMessage()); // Out of sync, etc...
-			return null;
+			return null; // Out of sync, etc...
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
@@ -136,8 +135,7 @@ class WorkspaceFileDocument extends ActiveDocument {
 		try {
 			return file.getContents(true);
 		} catch (ResourceException e) {
-			Activator.info(e.getMessage()); // Out of sync, etc...
-			return null;
+			return null; // Out of sync, etc...
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
