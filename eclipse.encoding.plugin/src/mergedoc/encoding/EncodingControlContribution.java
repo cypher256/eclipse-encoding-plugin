@@ -11,7 +11,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IContributionManager;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.MenuAdapter;
@@ -76,10 +75,6 @@ public class EncodingControlContribution extends
 		super(id);
 	}
 
-	private IPreferenceStore pref() {
-		return Activator.getDefault().getPreferenceStore();
-	}
-
 	/**
 	 * This method will be called each time to update the label, as resize cannot be made to work.
 	 */
@@ -121,7 +116,7 @@ public class EncodingControlContribution extends
 			!agent.isDocumentDirty() &&
 			doc.canChangeFileEncoding() &&
 			doc.mismatchesEncoding() &&
-			pref().getBoolean(PREF_AUTODETECT_CHANGE)
+			prefIs(PREF_AUTODETECT_CHANGE)
 		) {
 			String message = "Encoding has been set %s automatically.";
 			String detectedEncoding = doc.getDetectedEncoding();
@@ -179,7 +174,7 @@ public class EncodingControlContribution extends
 		}
 		encodingLabel.setText(doc.getCurrentEncoding());
 		
-		if (doc.mismatchesEncoding() && pref().getBoolean(PREF_AUTODETECT_WARN)) {
+		if (doc.mismatchesEncoding() && prefIs(PREF_AUTODETECT_WARN)) {
 			String message = "Detected charset %s (Current setting: %s)";
 			doc.warnMessage(message, doc.getDetectedEncoding(), doc.getCurrentEncoding());
 			encodingLabel.setToolTipText(format(message, doc.getDetectedEncoding(), doc.getCurrentEncoding()));
@@ -254,7 +249,7 @@ public class EncodingControlContribution extends
 				charsetParentItem.setText(String.format("Convert Charset %s to", doc.getCurrentEncoding()));
 				charsetParentItem.setImage(Activator.getImage("convert_charset"));
 				charsetParentItem.setEnabled(enabledAction);
-				if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) &&
+				if (prefIs(PREF_DISABLE_UNCERTAIN_OPERATION) &&
 						(doc.getDetectedEncoding() == null || doc.mismatchesEncoding())) {
 					charsetParentItem.setEnabled(false);
 				}
@@ -282,7 +277,7 @@ public class EncodingControlContribution extends
 				MenuItem encodingParentItem = new MenuItem(encodingPopupMenu, SWT.CASCADE);
 				encodingParentItem.setText("Change Encoding to");
 				encodingParentItem.setEnabled(enabledAction);
-				if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) && doc.matchesEncoding()) {
+				if (prefIs(PREF_DISABLE_UNCERTAIN_OPERATION) && doc.matchesEncoding()) {
 					encodingParentItem.setEnabled(false);
 				}
 				encodingParentItem.setImage(Activator.getImage("change_encoding"));
@@ -298,7 +293,7 @@ public class EncodingControlContribution extends
 						item.setSelection(true);
 					}
 					// Converted to one line and freeze on big file
-					else if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) && i.encoding.startsWith("UTF-16")) {
+					else if (prefIs(PREF_DISABLE_UNCERTAIN_OPERATION) && i.encoding.startsWith("UTF-16")) {
 						item.setEnabled(false);
 					}
 					item.addSelectionListener(new SelectionAdapter() {
@@ -402,7 +397,7 @@ public class EncodingControlContribution extends
 					item.setText(lineEndingItem.value + " " + lineEndingItem.desc);
 					item.setEnabled(enabledAction);
 					// Allow change if detectedEncoding is null for english only
-					if (pref().getBoolean(PREF_DISABLE_DANGER_OPERATION) && doc.mismatchesEncoding()) {
+					if (prefIs(PREF_DISABLE_UNCERTAIN_OPERATION) && doc.mismatchesEncoding()) {
 						item.setEnabled(false);
 					}
 					if (lineEndingItem.value.equals(doc.getLineSeparator())) {
@@ -430,7 +425,7 @@ public class EncodingControlContribution extends
 			.setToolTipText("This only applies when the file properties encoding is not specified");
 		
 		createToggleMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
-		createToggleMenuItem(PREF_DISABLE_DANGER_OPERATION, "Autodetect: Disable Dangerous Operations");
+		createToggleMenuItem(PREF_DISABLE_UNCERTAIN_OPERATION, "Autodetect: Disable Uncertain Operations");
 		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
 	
@@ -438,17 +433,21 @@ public class EncodingControlContribution extends
 		
 		final MenuItem item = new MenuItem(encodingPopupMenu, SWT.CHECK);
 		item.setText(message);
-		item.setSelection(pref().getBoolean(prefKey));
+		item.setSelection(prefIs(prefKey));
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				boolean sel = !pref().getBoolean(prefKey);
+				boolean sel = !prefIs(prefKey);
 				item.setSelection(sel);
-				pref().setValue(prefKey, sel);
+				Activator.getDefault().getPreferenceStore().setValue(prefKey, sel);
 				encodingInfoChanged();
 			}
 		});
 		return item;
+	}
+
+	private boolean prefIs(String prefKey) {
+		return Activator.getDefault().getPreferenceStore().getBoolean(prefKey);
 	}
 	
 	private void createShortcutMenu() {
