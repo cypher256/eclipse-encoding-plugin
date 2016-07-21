@@ -75,7 +75,7 @@ public class Encodings {
 
 	/**
 	 * Windows default encoding mappings.
-	 * key  : java.nio canonical name (java.nio.charset.Charset#name)
+	 * key  : java.nio canonical name (java.nio.charset.Charset#name lower case)
 	 * value: java.io  canonical name (Windows Java default encoding name)
 	 */
 	private static final Map<String, String> windowsEncodingMap = new HashMap<String, String>() {{
