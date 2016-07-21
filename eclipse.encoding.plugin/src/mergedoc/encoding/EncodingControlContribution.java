@@ -15,6 +15,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.core.runtime.content.IContentType;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -37,6 +38,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.ide.IDEEncoding;
 import org.eclipse.ui.internal.dialogs.ContentTypesPreferencePage;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
+import org.osgi.service.prefs.Preferences;
 
 import mergedoc.encoding.EncodingPreferenceInitializer.PreferenceKey;
 
@@ -560,7 +562,7 @@ public class EncodingControlContribution extends
 			if (contentDescription != null) {
 				
 				// Key: contentTypeId, Value: preferencePageId in corresponding plugin.xml
-				Map<String, String> map = new HashMap<String, String>() {{
+				Map<String, String> contentTypePrefMap = new HashMap<String, String>() {{
 					put("org.eclipse.wst.json.core.jsonsource",	"org.eclipse.wst.json.ui.preferences.json.json");
 					put("org.eclipse.wst.html.core.htmlsource",	"org.eclipse.wst.html.ui.preferences.html");
 					put("org.eclipse.wst.css.core.csssource",	"org.eclipse.wst.css.ui.preferences.css");
@@ -572,11 +574,23 @@ public class EncodingControlContribution extends
 					put("org.eclipse.jst.jsp.core.cssjspsource",		"org.eclipse.jst.jsp.ui.preferences.jsp");
 					put("org.eclipse.jst.jsp.core.cssjspfragmentsource","org.eclipse.jst.jsp.ui.preferences.jsp");
 				}};
-				final String preferencePageId = map.get(contentDescription.getContentType().getId());
+				final String preferencePageId = contentTypePrefMap.get(contentDescription.getContentType().getId());
 				if (preferencePageId != null) {
 					
+					// Key: preferencePageId suffix, Value: encoding
+					Map<String, String> creationEncodingMap = new HashMap<String, String>() {{
+						put("json",	"org.eclipse.wst.json.core");
+						put("html",	"org.eclipse.wst.html.core");
+						put("css" ,	"org.eclipse.wst.css.core");
+						put("xml" ,	"org.eclipse.wst.xml.core");
+						put("jsp" ,	"org.eclipse.jst.jsp.core");
+					}};
+					String pluginId = creationEncodingMap.get(preferencePageId.replaceAll(".*\\.", ""));
+					Preferences pref = InstanceScope.INSTANCE.getNode(pluginId);
+					String encoding = pref.get("outputCodeset", "UTF-8");
+					
 					MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
-					item.setText("File Creation Preferences...");
+					item.setText("File Creation Preferences..." + getEncodingLabel(encoding));
 					item.setImage(Activator.getImage("file_new"));
 					item.addSelectionListener(new SelectionAdapter() {
 						@Override
@@ -624,7 +638,6 @@ public class EncodingControlContribution extends
 				}
 			});
 		}
-		
 		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
 
