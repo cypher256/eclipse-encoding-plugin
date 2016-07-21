@@ -78,7 +78,7 @@ class NonWorkspaceFileDocument extends ActiveDocument {
 		return true;
 	}
 	@Override
-	public boolean enabledContentTypeEnding() {
+	public boolean enabledContentType() {
 		return true;
 	}
 

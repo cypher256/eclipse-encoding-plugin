@@ -52,6 +52,18 @@ class WorkspaceFileDocument extends ActiveDocument {
 		return file;
 	}
 
+	@Override
+	public IContentDescription getContentDescription() {
+		try {
+			return file.getContentDescription();
+		} catch (ResourceException e) {
+			Activator.info(e.getMessage()); // Out of sync, etc...
+			return null;
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+	
 	/**
 	 * Update the encoding information in member variables.
 	 * This method may be overrided, but should be called by the sub-class.
@@ -79,7 +91,7 @@ class WorkspaceFileDocument extends ActiveDocument {
 			try {
 				inheritedEncoding = file.getParent().getDefaultCharset();
 				detectedEncoding = Encodings.detectEncoding(getInputStream());
-				IContentDescription contentDescription = file.getContentDescription();
+				IContentDescription contentDescription = getContentDescription();
 				if (contentDescription != null) {
 					contentTypeEncoding = contentDescription.getCharset();
 				}
@@ -95,11 +107,8 @@ class WorkspaceFileDocument extends ActiveDocument {
 							.getMethod("resource").invoke(packageRoot.element);
 					packageRoot.encoding = c.getDefaultCharset(false);
 				}
-				
-			} catch (ResourceException e) {
-				// IFile#getContentDescription - Resource is out of sync with the file system
-				Activator.info(e.getMessage());
-				
+			} catch (RuntimeException e) {
+				throw e;
 			} catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
@@ -114,11 +123,11 @@ class WorkspaceFileDocument extends ActiveDocument {
 		return true;
 	}
 	@Override
-	public boolean canConvertLineEnding() {
+	public boolean canConvertLineSeparator() {
 		return true;
 	}
 	@Override
-	public boolean enabledContentTypeEnding() {
+	public boolean enabledContentType() {
 		return true;
 	}
 
@@ -126,6 +135,9 @@ class WorkspaceFileDocument extends ActiveDocument {
 	protected InputStream getInputStream() {
 		try {
 			return file.getContents(true);
+		} catch (ResourceException e) {
+			Activator.info(e.getMessage()); // Out of sync, etc...
+			return null;
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}

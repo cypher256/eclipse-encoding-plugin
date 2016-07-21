@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
@@ -61,6 +62,9 @@ class ActiveDocument {
 		return null;
 	}
 	public IFile getFile() {
+		return null;
+	}
+	public IContentDescription getContentDescription() {
 		return null;
 	}
 
@@ -173,10 +177,10 @@ class ActiveDocument {
 	public boolean canChangeFileEncoding() {
 		return false;
 	}
-	public boolean canConvertLineEnding() {
+	public boolean canConvertLineSeparator() {
 		return false;
 	}
-	public boolean enabledContentTypeEnding() {
+	public boolean enabledContentType() {
 		return false;
 	}
 
