@@ -84,6 +84,7 @@ public class EncodingControlContribution extends
 
 	public EncodingControlContribution() {
 	}
+
 	public EncodingControlContribution(String id) {
 		super(id);
 	}
@@ -162,7 +163,7 @@ public class EncodingControlContribution extends
 		createLineSeparatorMenu();
 
 		if (warnMessageLater != null) {
-			agent.getDocument().warnMessage(warnMessageLater);
+			doc.warnMessage(warnMessageLater);
 			warnMessageLater = null;
 		}
 	}
@@ -576,10 +577,8 @@ public class EncodingControlContribution extends
 					put("org.eclipse.wst.json.core.jsonsource",	"org.eclipse.wst.json.ui.preferences.json.json");
 					put("org.eclipse.wst.html.core.htmlsource",	"org.eclipse.wst.html.ui.preferences.html");
 					put("org.eclipse.wst.css.core.csssource",	"org.eclipse.wst.css.ui.preferences.css");
-
-					put("org.eclipse.wst.xml.core.xmlsource",	"org.eclipse.wst.xml.ui.preferences.xml.xml");
-					put("org.eclipse.core.runtime.xml",			"org.eclipse.wst.xml.ui.preferences.xml.xml");
-
+					put("org.eclipse.wst.xml.core.xmlsource",		"org.eclipse.wst.xml.ui.preferences.xml.xml");
+					put("org.eclipse.core.runtime.xml",				"org.eclipse.wst.xml.ui.preferences.xml.xml");
 					put("org.eclipse.jst.jsp.core.jspsource",			"org.eclipse.jst.jsp.ui.preferences.jsp");
 					put("org.eclipse.jst.jsp.core.cssjspsource",		"org.eclipse.jst.jsp.ui.preferences.jsp");
 					put("org.eclipse.jst.jsp.core.cssjspfragmentsource","org.eclipse.jst.jsp.ui.preferences.jsp");

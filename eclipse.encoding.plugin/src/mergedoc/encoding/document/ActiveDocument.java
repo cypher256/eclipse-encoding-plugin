@@ -252,13 +252,20 @@ public class ActiveDocument {
 	}
 
 	private void setMessage(String imageIconKey, String message, Object... args) {
-		if (editor != null) {
-			IStatusLineManager statusLineManager = editor.getEditorSite().getActionBars().getStatusLineManager();
+		IStatusLineManager statusLineManager = getStatusLineManager();
+		if (statusLineManager != null) {
 			if (message == null) {
 				statusLineManager.setMessage(null);
 			} else {
 				statusLineManager.setMessage(Activator.getImage(imageIconKey), String.format(message, args));
 			}
 		}
+	}
+	
+	protected IStatusLineManager getStatusLineManager() {
+		if (editor != null) {
+			return editor.getEditorSite().getActionBars().getStatusLineManager();
+		}
+		return null;
 	}
 }

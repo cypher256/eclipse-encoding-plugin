@@ -1,7 +1,10 @@
 package mergedoc.encoding.document;
 
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.internal.WorkbenchWindow;
 
 import mergedoc.encoding.IActiveDocumentAgentCallback;
 import mergedoc.encoding.LineSeparators;
@@ -10,6 +13,7 @@ import mergedoc.encoding.LineSeparators;
  * This is no opend editor in workspace handler for ActiveDocumentAgent.
  * @author Shinji Kashihara
  */
+@SuppressWarnings("restriction")
 public class NullDocumentWorkspace extends NullDocument {
 
 	public NullDocumentWorkspace() {
@@ -32,5 +36,11 @@ public class NullDocumentWorkspace extends NullDocument {
 		if (updateEncoding()) {
 			callback.encodingChanged();
 		}
+	}
+	
+	@Override
+	protected IStatusLineManager getStatusLineManager() {
+		WorkbenchWindow window = (WorkbenchWindow) PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		return window.getActionBars().getStatusLineManager();
 	}
 }
