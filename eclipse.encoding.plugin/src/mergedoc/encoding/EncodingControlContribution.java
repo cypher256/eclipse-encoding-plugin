@@ -51,10 +51,11 @@ import mergedoc.encoding.document.ActiveDocument;
 @SuppressWarnings("restriction")
 public class EncodingControlContribution extends
 		WorkbenchWindowControlContribution implements IActiveDocumentAgentCallback, PreferenceKey {
-	
+
 	// The agent is responsible for monitoring the encoding information of the active document.
 	private final ActiveDocumentAgent agent = new ActiveDocumentAgent(this);
 	private Composite statusBar;
+	private String warnMessageLater;
 
 	private CLabel encodingLabel;
 	private Menu encodingPopupMenu;
@@ -116,7 +117,7 @@ public class EncodingControlContribution extends
 			gridData.widthHint = 40;
 			lineSeparatorLabel.setLayoutData(gridData);
 		}
-		
+
 		fillControl();
 		return statusBar;
 	}
@@ -156,9 +157,14 @@ public class EncodingControlContribution extends
 				}
 			}
 		}
-		
+
 		createEncodingMenu();
 		createLineSeparatorMenu();
+
+		if (warnMessageLater != null) {
+			agent.getDocument().warnMessage(warnMessageLater);
+			warnMessageLater = null;
+		}
 	}
 
 	private void addEncodingItem(String encoding) {
@@ -172,10 +178,10 @@ public class EncodingControlContribution extends
 			Collections.sort(encodingList);
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private void createEncodingMenu() {
-		
+
 		ActiveDocument doc = agent.getDocument();
 		if (doc.getCurrentEncoding() == null) {
 			encodingLabel.setText(null);
@@ -185,7 +191,7 @@ public class EncodingControlContribution extends
 			return;
 		}
 		encodingLabel.setText(doc.getCurrentEncoding());
-		
+
 		if (doc.mismatchesEncoding() && prefIs(PREF_AUTODETECT_WARN)) {
 			String message = "Detected charset %s (Current setting: %s)";
 			doc.warnMessage(message, doc.getDetectedEncoding(), doc.getCurrentEncoding());
@@ -212,7 +218,7 @@ public class EncodingControlContribution extends
 		}
 		encodingPopupMenu = new Menu(encodingLabel);
 		encodingLabel.setMenu(encodingPopupMenu);
-		
+
 		// Add the menu items dynamically
 		encodingPopupMenu.addMenuListener(new MenuAdapter() {
 			@Override
@@ -221,7 +227,7 @@ public class EncodingControlContribution extends
 
 				// Remove existing menu items.
 				for (MenuItem item: encodingPopupMenu.getItems()) item.dispose();
-				
+
 				createPreferenceMenu();
 				createEncodingShortcutMenu();
 
@@ -321,7 +327,7 @@ public class EncodingControlContribution extends
 				// Create change encoding for autodetect
 				final MenuItem detectItem = new MenuItem(encodingPopupMenu, SWT.NONE);
 				detectItem.setImage(Activator.getImage("autodetect"));
-				
+
 				if (doc.getDetectedEncoding() == null) {
 					detectItem.setText("Change Encoding (Cannot Autodetect)");
 					detectItem.setEnabled(false);
@@ -357,9 +363,9 @@ public class EncodingControlContribution extends
 			doc.warnMessage(null);
 		}
 	}
-	
+
 	private void createLineSeparatorMenu() {
-		
+
 		ActiveDocument doc = agent.getDocument();
 		if (doc.getLineSeparator() == null) {
 			lineSeparatorLabel.setText(""); // Label null NG, CLabel null OK
@@ -397,7 +403,7 @@ public class EncodingControlContribution extends
 
 				// Remove existing menu items.
 				for (MenuItem item: lineSeparatorPopupMenu.getItems()) item.dispose();
-				
+
 				createSeparatorShortcutMenu();
 
 				// Do not allow changing encoding when the document is dirty.
@@ -432,38 +438,39 @@ public class EncodingControlContribution extends
 			}
 		});
 	}
-	
+
 	private void createPreferenceMenu() {
-		
-		createToggleMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically")
-			.setToolTipText("This only applies when the file properties encoding is not specified");
-		
+
+		createToggleMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically");
 		createToggleMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
 		createToggleMenuItem(PREF_DISABLE_UNCERTAIN_OPERATION, "Autodetect: Disable Uncertain Operations");
 		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
-	
-	private MenuItem createToggleMenuItem(final String prefKey, String message) {
-		
+
+	private void createToggleMenuItem(final String prefKey, String message) {
+
 		final MenuItem item = new MenuItem(encodingPopupMenu, SWT.CHECK);
 		item.setText(message);
 		item.setSelection(prefIs(prefKey));
 		item.addSelectionListener(new SelectionAdapter() {
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				boolean sel = !prefIs(prefKey);
 				item.setSelection(sel);
 				Activator.getDefault().getPreferenceStore().setValue(prefKey, sel);
 				encodingChanged();
+				if (sel && prefKey.equals(PREF_AUTODETECT_CHANGE)) {
+					warnMessageLater = "'Set automatically' only applies when the file properties encoding is not set.";
+				}
 			}
 		});
-		return item;
 	}
 
 	private boolean prefIs(String prefKey) {
 		return Activator.getDefault().getPreferenceStore().getBoolean(prefKey);
 	}
-	
+
 	private void createEncodingShortcutMenu() {
 
 		final ActiveDocument doc = agent.getDocument();
@@ -557,29 +564,29 @@ public class EncodingControlContribution extends
 				}
 			});
 		}
-		
+
 		// File Creation Preferences
 		{
 			// Null if non plugin for editor
 			IContentDescription contentDescription = doc.getContentDescription();
 			if (contentDescription != null) {
-				
+
 				// Key: contentTypeId, Value: preferencePageId in corresponding plugin.xml
 				Map<String, String> contentTypePrefMap = new HashMap<String, String>() {{
 					put("org.eclipse.wst.json.core.jsonsource",	"org.eclipse.wst.json.ui.preferences.json.json");
 					put("org.eclipse.wst.html.core.htmlsource",	"org.eclipse.wst.html.ui.preferences.html");
 					put("org.eclipse.wst.css.core.csssource",	"org.eclipse.wst.css.ui.preferences.css");
-					
+
 					put("org.eclipse.wst.xml.core.xmlsource",	"org.eclipse.wst.xml.ui.preferences.xml.xml");
 					put("org.eclipse.core.runtime.xml",			"org.eclipse.wst.xml.ui.preferences.xml.xml");
-					
+
 					put("org.eclipse.jst.jsp.core.jspsource",			"org.eclipse.jst.jsp.ui.preferences.jsp");
 					put("org.eclipse.jst.jsp.core.cssjspsource",		"org.eclipse.jst.jsp.ui.preferences.jsp");
 					put("org.eclipse.jst.jsp.core.cssjspfragmentsource","org.eclipse.jst.jsp.ui.preferences.jsp");
 				}};
 				final String preferencePageId = contentTypePrefMap.get(contentDescription.getContentType().getId());
 				if (preferencePageId != null) {
-					
+
 					// Key: preferencePageId suffix, Value: encoding preference pluginId
 					Map<String, String> creationEncodingMap = new HashMap<String, String>() {{
 						put("json",	"org.eclipse.wst.json.core");
@@ -591,7 +598,7 @@ public class EncodingControlContribution extends
 					String pluginId = creationEncodingMap.get(preferencePageId.replaceAll(".*\\.", ""));
 					Preferences pref = InstanceScope.INSTANCE.getNode(pluginId);
 					String encoding = pref.get("outputCodeset", "UTF-8");
-					
+
 					MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
 					item.setText("File Creation Preferences..." + getLabelSuffix(encoding));
 					item.setImage(Activator.getImage("file_new"));
@@ -605,7 +612,7 @@ public class EncodingControlContribution extends
 				}
 			}
 		}
-		
+
 		// Content Type Preferences
 		{
 			String encoding = doc.getContentTypeEncoding();
@@ -619,7 +626,7 @@ public class EncodingControlContribution extends
 			item.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					
+
 					PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
 						Display.getDefault().getActiveShell(),
 						"org.eclipse.ui.preferencePages.ContentTypes", null, null);
@@ -627,7 +634,7 @@ public class EncodingControlContribution extends
 						Field field = ContentTypesPreferencePage.class.getDeclaredField("contentTypesViewer");
 						field.setAccessible(true);
 						TreeViewer contentTypesViewer = (TreeViewer) field.get(dialog.getSelectedPage());
-						
+
 						IContentDescription contentDescription = doc.getContentDescription();
 						if (contentDescription != null) {
 							IContentType contentType = contentDescription.getContentType();
@@ -643,7 +650,7 @@ public class EncodingControlContribution extends
 		}
 		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
-	
+
 	private void createSeparatorShortcutMenu() {
 
 		final ActiveDocument doc = agent.getDocument();
@@ -687,7 +694,7 @@ public class EncodingControlContribution extends
 		}
 		new MenuItem(lineSeparatorPopupMenu, SWT.SEPARATOR);
 	}
-	
+
 	private String getLabelSuffix(String encoding) {
 		if (encoding != null) {
 			return " (" + encoding + ")";
