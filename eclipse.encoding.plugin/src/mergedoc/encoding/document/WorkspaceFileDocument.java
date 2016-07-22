@@ -1,4 +1,4 @@
-package mergedoc.encoding;
+package mergedoc.encoding.document;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -16,6 +16,11 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 
+import mergedoc.encoding.Encodings;
+import mergedoc.encoding.IActiveDocumentAgentCallback;
+import mergedoc.encoding.LineSeparators;
+import mergedoc.encoding.PackageRoot;
+
 /**
  * This handler handles workspace text file for ActiveDocumentAgent.
  * Assume that the ITextEditor supports IEncodingSupport too.
@@ -23,18 +28,22 @@ import org.eclipse.ui.IFileEditorInput;
  * @author Shinji Kashihara
  */
 @SuppressWarnings("restriction")
-class WorkspaceFileDocument extends ActiveDocument {
+public class WorkspaceFileDocument extends ActiveDocument {
 
 	private IFile file;
-	private PackageRoot packageRoot = new PackageRoot();
+	private PackageRoot packageRoot;
 
 	public WorkspaceFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
+	}
+	
+	@Override
+	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		if (!(editor.getEditorInput() instanceof IFileEditorInput)) {
 			throw new IllegalArgumentException("part must provide IFileEditorInput.");
 		}
 		file = ((IFileEditorInput) editor.getEditorInput()).getFile();
-		updateEncodingInfoPrivately();
+		super.init(editor, callback);
 	}
 
 	@Override
@@ -63,58 +72,44 @@ class WorkspaceFileDocument extends ActiveDocument {
 		}
 	}
 	
-	/**
-	 * Update the encoding information in member variables.
-	 * This method may be overrided, but should be called by the sub-class.
-	 * @return true if the encoding information is updated.
-	 */
-	protected boolean updateEncodingInfo() {
-		return super.updateEncodingInfo() | updateEncodingInfoPrivately();
-	}
-
-	/**
-	 * Update the encoding information in private member variables.
-	 * @return true if the encoding information is updated.
-	 */
-	private boolean updateEncodingInfoPrivately() {
-
-		inheritedEncoding = null;
-		detectedEncoding = null;
-		contentTypeEncoding = null;
-		lineSeparator = null;
-
+	@Override
+	protected void updateEncodingInfo() {
+		
+		super.updateEncodingInfo();
+		if (packageRoot == null) {
+			packageRoot = new PackageRoot();
+		}
 		packageRoot.element = null;
 		packageRoot.encoding = null;
 
-		if (file != null) {
-			try {
-				inheritedEncoding = file.getParent().getDefaultCharset();
-				detectedEncoding = Encodings.detectEncoding(getInputStream());
-				IContentDescription contentDescription = getContentDescription();
-				if (contentDescription != null) {
-					contentTypeEncoding = contentDescription.getCharset();
-				}
-				lineSeparator = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
-
-				IEditorInput editorInput = editor.getEditorInput();
-				Object ele = AdapterManager.getDefault().getAdapter(editorInput, "org.eclipse.jdt.core.IJavaElement");
-				if (ele != null) {
-					final int PACKAGE_FRAGMENT_ROOT = 3; // IJavaElement.PACKAGE_FRAGMENT_ROOT
-					packageRoot.element = (IAdaptable) ele.getClass()
-							.getMethod("getAncestor", int.class).invoke(ele, PACKAGE_FRAGMENT_ROOT);
-					IContainer c = (IContainer) packageRoot.element.getClass()
-							.getMethod("resource").invoke(packageRoot.element);
-					packageRoot.encoding = c.getDefaultCharset(false);
-				}
-			} catch (RuntimeException e) {
-				throw e;
-			} catch (Exception e) {
-				throw new IllegalStateException(e);
+		try {
+			inheritedEncoding = file.getParent().getDefaultCharset();
+			detectedEncoding = Encodings.detectEncoding(getInputStream());
+			IContentDescription contentDescription = getContentDescription();
+			if (contentDescription != null) {
+				contentTypeEncoding = contentDescription.getCharset();
 			}
+			
+			lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
+			if (lineSeparator == null) {
+				lineSeparator = LineSeparators.resolve(file);
+			}
+			
+			IEditorInput editorInput = editor.getEditorInput();
+			Object ele = AdapterManager.getDefault().getAdapter(editorInput, "org.eclipse.jdt.core.IJavaElement");
+			if (ele != null) {
+				final int PACKAGE_FRAGMENT_ROOT = 3; // IJavaElement.PACKAGE_FRAGMENT_ROOT
+				packageRoot.element = (IAdaptable) ele.getClass()
+						.getMethod("getAncestor", int.class).invoke(ele, PACKAGE_FRAGMENT_ROOT);
+				IContainer c = (IContainer) packageRoot.element.getClass()
+						.getMethod("resource").invoke(packageRoot.element);
+				packageRoot.encoding = c.getDefaultCharset(false);
+			}
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
 		}
-
-		// Just assume that the encoding information is updated.
-		return true;
 	}
 
 	@Override

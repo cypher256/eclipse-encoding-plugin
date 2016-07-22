@@ -1,6 +1,5 @@
 package mergedoc.encoding;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.IPageChangeProvider;
 import org.eclipse.jface.dialogs.IPageChangedListener;
 import org.eclipse.jface.dialogs.PageChangedEvent;
@@ -17,6 +16,14 @@ import org.eclipse.ui.editors.text.IEncodingSupport;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
+
+import mergedoc.encoding.document.ActiveDocument;
+import mergedoc.encoding.document.ClassFileDocument;
+import mergedoc.encoding.document.NonWorkspaceFileDocument;
+import mergedoc.encoding.document.NullDocument;
+import mergedoc.encoding.document.NullDocumentWorkspace;
+import mergedoc.encoding.document.StorageFileDocument;
+import mergedoc.encoding.document.WorkspaceFileDocument;
 
 /**
  * This agent tries to provide the encoding of the document of the active editor.
@@ -44,7 +51,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 		this.callback = callback;
 
 		// Initialize the current handler to a dummy handler, so that we do not need to check whether it is null.
-		setCurrentHandler(getHandler(null));
+		setCurrentDocument(getDocument(null));
 	}
 
 	/**
@@ -76,11 +83,15 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 
 	/**
 	 * Get a handler for an editor.
-	 * @return a specific handler, or NullDocumentHandler if there is no specific handler for an editor.
+	 * @return a specific handler, or NullDocument if there is no specific handler for an editor.
 	 */
-	private ActiveDocument getHandler(IEditorPart editor) {
+	private ActiveDocument getDocument(IEditorPart editor) {
 
-		if (editor != null && editor.getAdapter(IEncodingSupport.class) != null) {
+		if (editor == null) {
+			// No opend editor in workspace
+			return new NullDocumentWorkspace();
+		}
+		else if (editor.getAdapter(IEncodingSupport.class) != null) {
 			
 			// MultiPartEditor active tab
 			if (editor instanceof FormEditor) {
@@ -89,7 +100,6 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 					editor = e;
 				 }
 			}
-
 			IEditorInput editorInput = editor.getEditorInput();
 			if (editorInput instanceof IFileEditorInput) {
 				return new WorkspaceFileDocument(editor, callback);
@@ -99,18 +109,19 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 			}
 			else if (editorInput instanceof IStorageEditorInput) {
 				// Non class file resources in jar
-				try {
-					return new StorageFileDocument(editor, callback);
-				} catch (CoreException e) {
-					// Fallback
-					return new ActiveDocument(editor, callback);
+				StorageFileDocument doc = new StorageFileDocument(editor, callback);
+				if (doc.hasContent()) {
+					return doc;
 				}
+				// Fallback
+				return new ActiveDocument(editor, callback);
 			} else if (editorInput.getClass().getSimpleName().equals("InternalClassFileEditorInput")) {
 				// Class file in jar
 				return new ClassFileDocument(editor, callback);
 			}
 		}
-		return new NullDocument(editor, callback);
+		// MultiPageEditor no document tab
+		return new NullDocument();
 	}
 
 	/**
@@ -126,7 +137,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 
 				// Update the current handler.
 				// Not invoke the callback during start.
-				setCurrentHandler(getHandler(getActiveEditor()));
+				setCurrentDocument(getDocument(getActiveEditor()));
 
 				// Add listeners.
 				window.getPartService().addPartListener(this);
@@ -144,7 +155,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 			window.getPartService().removePartListener(this);
 
 			// Reset the current handler to a dummy handler, which will remove IPropertyListener if added.
-			setCurrentHandler(getHandler(null));
+			setCurrentDocument(getDocument(null));
 
 			window = null;
 			isStarted = false;
@@ -154,11 +165,11 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	/**
 	 * Change the current handler.
 	 * This method helps to add/remove IPropertyListener as needed.
-	 * @param handler
+	 * @param document
 	 */
-	private void setCurrentHandler(ActiveDocument handler) {
+	private void setCurrentDocument(ActiveDocument document) {
 
-		if (handler == null) throw new IllegalArgumentException("handler must not be null.");
+		if (document == null) throw new IllegalArgumentException("handler must not be null.");
 
 		// Remove IPropertyListener from the old editor.
 		if (currentDocument != null) {
@@ -167,7 +178,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 				editor.removePropertyListener(this);
 			}
 		}
-		currentDocument = handler;
+		currentDocument = document;
 
 		// Add IPropertyListener to the new editor.
 		IEditorPart editor = currentDocument.getEditor();
@@ -184,8 +195,8 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 		IEditorPart active_editor = getActiveEditor();
 		if (active_editor != currentDocument.getEditor()) {
 			// Get a new handler for the active editor, and invoke the callback.
-			setCurrentHandler(getHandler(active_editor));
-			callback.encodingInfoChanged();
+			setCurrentDocument(getDocument(active_editor));
+			callback.encodingChanged();
 		}
 	}
 
@@ -194,8 +205,8 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 		if (propId == IEditorPart.PROP_INPUT) {
 			// The current handler may not be able to handle the new editor input,
 			// so get a new handler for the active editor, and invoke the callback.
-			setCurrentHandler(getHandler(getActiveEditor()));
-			callback.encodingInfoChanged();
+			setCurrentDocument(getDocument(getActiveEditor()));
+			callback.encodingChanged();
 		}
 		else {
 			// Pass the event to the handler.
@@ -237,7 +248,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	@Override
 	public void pageChanged(PageChangedEvent event) {
 		// MultiPageEditorPart tab changed
-		setCurrentHandler(getHandler(getActiveEditor()));
-		callback.encodingInfoChanged();
+		setCurrentDocument(getDocument(getActiveEditor()));
+		callback.encodingChanged();
 	}
 }

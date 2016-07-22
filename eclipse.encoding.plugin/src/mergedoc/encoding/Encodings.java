@@ -1,11 +1,8 @@
 package mergedoc.encoding;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -137,62 +134,5 @@ public class Encodings {
 			return Activator.getImage("unicode");
 		}
 		return null;
-	}
-
-	public static String getLineEnding(InputStream is, String encoding) {
-		if (is == null) {
-			return null;
-		}
-		try {
-			Reader reader = new BufferedReader(new InputStreamReader(is, encoding));
-			return getLineEnding(reader);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	public static String getLineEnding(Reader reader) {
-		try {
-			boolean crlf = false;
-			boolean cr = false;
-			boolean lf = false;
-			int count = 0;
-			final String MIXED = "Mixed";
-
-			int i;
-			while((i = reader.read()) != -1) {
-				if (++count > 8192) {
-					// Parse only starts chars for no line ending big file
-					break;
-				}
-				char c = (char) i;
-				if (c == '\r') {
-					char nextChar = (char) reader.read();
-					if (nextChar == '\n') {
-						if (cr || lf) return MIXED;
-						crlf = true;
-					} else {
-						if (crlf || lf) return MIXED;
-						cr = true;
-					}
-				} else if (c == '\n') {
-					if (crlf || cr) return MIXED;
-					lf = true;
-				}
-			}
-			if (crlf) {
-				return "CRLF";
-			} else if (cr) {
-				return "CR";
-			} else if (lf) {
-				return "LF";
-			}
-			return null;
-
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		} finally {
-			IOs.closeQuietly(reader);
-		}
 	}
 }

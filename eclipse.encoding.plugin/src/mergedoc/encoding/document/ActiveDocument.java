@@ -1,10 +1,11 @@
-package mergedoc.encoding;
+package mergedoc.encoding.document;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -15,12 +16,18 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.editors.text.IEncodingSupport;
 
+import mergedoc.encoding.Activator;
+import mergedoc.encoding.Encodings;
+import mergedoc.encoding.IActiveDocumentAgentCallback;
+import mergedoc.encoding.IOs;
+import mergedoc.encoding.PackageRoot;
+
 /**
  * This document handles editors which support IEncodingSupport for ActiveDocumentAgent.
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class ActiveDocument {
+public class ActiveDocument {
 
 	protected IActiveDocumentAgentCallback callback;
 	protected IEditorPart editor;
@@ -45,7 +52,7 @@ class ActiveDocument {
 		this.encodingSupport = (IEncodingSupport) editor.getAdapter(IEncodingSupport.class);
 		if (encodingSupport == null) throw new IllegalArgumentException("editor must provide IEncodingSupport.");
 
-		updateEncodingInfoPrivately();
+		updateEncodingInfo();
 	}
 
 	/**
@@ -107,9 +114,9 @@ class ActiveDocument {
 		// It seems that the editor's encoding will not change when it is dirty.
 		if (!editor.isDirty()) {
 			// The document may be just saved.
-			if (updateEncodingInfo()) {
+			if (updateEncoding()) {
 				// Invoke the callback if the encoding information is changed.
-				callback.encodingInfoChanged();
+				callback.encodingChanged();
 			}
 		}
 	}
@@ -138,40 +145,45 @@ class ActiveDocument {
 		} catch (Exception e) {
 			// Ignore BackingStoreException for not sync project preferences store
 		}
-		if (updateEncodingInfo()) {
+		if (updateEncoding()) {
 			// Invoke the callback if the encoding information is changed.
-			callback.encodingInfoChanged();
+			callback.encodingChanged();
 		}
 	}
 
+	protected final boolean updateEncoding() {
+		
+		String currentEncodingOld = currentEncoding;
+		String detectedEncodingOld = detectedEncoding;
+		String lineSeparatorOld = lineSeparator;
+		
+		updateEncodingInfo();
+		
+		return 
+			!StringUtils.equals(currentEncodingOld, currentEncoding) ||
+			!StringUtils.equals(detectedEncodingOld, detectedEncoding) ||
+			!StringUtils.equals(lineSeparatorOld, lineSeparator);
+	}
+	
 	/**
 	 * Update the encoding information in member variables.
 	 * This method may be overrided, but should be called by the sub-class.
-	 * @return true if the encoding information is updated.
 	 */
-	protected boolean updateEncodingInfo() {
-		return updateEncodingInfoPrivately();
-	}
-
-	/**
-	 * Update the encoding information in private member variables.
-	 * @return true if the encoding information is updated.
-	 */
-	private boolean updateEncodingInfoPrivately() {
-		String encoding = null;
-
-		encoding = encodingSupport.getEncoding();
-		if (encoding == null) {
-			// workspace encoding
-			encoding = encodingSupport.getDefaultEncoding();
+	protected void updateEncodingInfo() {
+		
+		currentEncoding = null;
+		inheritedEncoding = null;
+		detectedEncoding = null;
+		contentTypeEncoding = null;
+		lineSeparator = null;
+		
+		if (encodingSupport != null) {
+			currentEncoding = encodingSupport.getEncoding();
+			if (currentEncoding == null) {
+				// workspace encoding
+				currentEncoding = encodingSupport.getDefaultEncoding();
+			}
 		}
-
-		boolean is_not_updated =
-			(encoding == null ? this.currentEncoding == null : encoding.equals(this.currentEncoding));
-
-		this.currentEncoding = encoding;
-
-		return !is_not_updated;
 	}
 
 	public boolean canChangeFileEncoding() {

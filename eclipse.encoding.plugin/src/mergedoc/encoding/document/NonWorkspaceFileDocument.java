@@ -1,4 +1,4 @@
-package mergedoc.encoding;
+package mergedoc.encoding.document;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,49 +16,43 @@ import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.IDocumentProviderExtension;
 
+import mergedoc.encoding.Encodings;
+import mergedoc.encoding.IActiveDocumentAgentCallback;
+import mergedoc.encoding.IOs;
+import mergedoc.encoding.LineSeparators;
+
 /**
  * This handler handles non-workspace text file for ActiveDocumentAgent.
  * Assume that the ITextEditor supports IEncodingSupport too.
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class NonWorkspaceFileDocument extends ActiveDocument {
+public class NonWorkspaceFileDocument extends ActiveDocument {
 
 	// The text file associated with the editor.
 	private IFileStore text_file_store = null;
 
-	public NonWorkspaceFileDocument(IEditorPart part, IActiveDocumentAgentCallback callback) {
-		super(part, callback);
-		if (!(part.getEditorInput() instanceof FileStoreEditorInput)) {
+	public NonWorkspaceFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+		super(editor, callback);
+	}
+	
+	@Override
+	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+		if (!(editor.getEditorInput() instanceof FileStoreEditorInput)) {
 			throw new IllegalArgumentException("part must provide FileStoreEditorInput.");
 		}
 		try {
-			text_file_store = EFS.getStore(((FileStoreEditorInput) part.getEditorInput()).getURI());
+			text_file_store = EFS.getStore(((FileStoreEditorInput) editor.getEditorInput()).getURI());
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
-		updateEncodingInfoPrivately();
+		super.init(editor, callback);
 	}
 
-	/**
-	 * Update the encoding information in member variables.
-	 * This method may be overrided, but should be called by the sub-class.
-	 * @return true if the encoding information is updated.
-	 */
-	protected boolean updateEncodingInfo() {
-		return super.updateEncodingInfo() | updateEncodingInfoPrivately();
-	}
-
-	/**
-	 * Update the encoding information in private member variables.
-	 * @return true if the encoding information is updated.
-	 */
-	private boolean updateEncodingInfoPrivately() {
-
-		inheritedEncoding = null;
-		detectedEncoding = null;
-		contentTypeEncoding = null;
-		lineSeparator = null;
+	@Override
+	protected void updateEncodingInfo() {
+		
+		super.updateEncodingInfo();
 
 		if (text_file_store != null) {
 			inheritedEncoding = ResourcesPlugin.getEncoding();
@@ -67,10 +61,8 @@ class NonWorkspaceFileDocument extends ActiveDocument {
 			if (contentType != null) {
 				contentTypeEncoding = contentType.getDefaultCharset();
 			}
-			lineSeparator = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
+			lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
 		}
-		// Just assume that the encoding information is updated.
-		return true;
 	}
 
 	@Override

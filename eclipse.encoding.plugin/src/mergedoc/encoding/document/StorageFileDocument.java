@@ -1,4 +1,4 @@
-package mergedoc.encoding;
+package mergedoc.encoding.document;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -12,28 +12,43 @@ import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IStorageEditorInput;
 
+import mergedoc.encoding.Encodings;
+import mergedoc.encoding.IActiveDocumentAgentCallback;
+import mergedoc.encoding.LineSeparators;
+
 /**
  * This handler handles IStorageEditorInput for ActiveDocumentAgent.
  * Assume that the ITextEditor supports IEncodingSupport too.
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-class StorageFileDocument extends ActiveDocument {
+public class StorageFileDocument extends ActiveDocument {
 
 	// The storage object associated with the editor.
-	private IStorage storage = null;
+	private IStorage storage;
 
-	public StorageFileDocument(IEditorPart part, IActiveDocumentAgentCallback callback) throws CoreException {
-		
+	public StorageFileDocument(IEditorPart part, IActiveDocumentAgentCallback callback) {
 		super(part, callback);
-		if (!(part.getEditorInput() instanceof IStorageEditorInput)) {
+	}
+	
+	public boolean hasContent() {
+		return storage != null;
+	}
+	
+	@Override
+	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+		if (!(editor.getEditorInput() instanceof IStorageEditorInput)) {
 			throw new IllegalArgumentException("part must provide IStorageEditorInput.");
 		}
-		storage = ((IStorageEditorInput) part.getEditorInput()).getStorage();
-		
+		try {
+			storage = ((IStorageEditorInput) editor.getEditorInput()).getStorage();
+		} catch (CoreException e1) {
+			// hasContent is false
+			return;
+		}
 		// pom editor Effective pom tab, initial content 'Loading Effective pom...'
 		// Fixed UTF-8, LF
-		if (storage != null && storage.getClass().getName().endsWith("MavenStorage")) {
+		if (storage.getClass().getName().endsWith("MavenStorage")) {
 			currentEncoding = "UTF-8";
 			storage = new IStorage() {
 				@Override
@@ -62,39 +77,20 @@ class StorageFileDocument extends ActiveDocument {
 				}
 			};
 		}
-		updateEncodingInfoPrivately();
+		super.init(editor, callback);
 	}
 
-	/**
-	 * Update the encoding information in member variables.
-	 * This method may be overrided, but should be called by the sub-class.
-	 * @return true if the encoding information is updated.
-	 */
-	protected boolean updateEncodingInfo() {
-		return super.updateEncodingInfo() | updateEncodingInfoPrivately();
-	}
+	@Override
+	protected void updateEncodingInfo() {
 
-	/**
-	 * Update the encoding information in private member variables.
-	 * @return true if the encoding information is updated.
-	 */
-	private boolean updateEncodingInfoPrivately() {
+		super.updateEncodingInfo();
 
-		inheritedEncoding = null;
-		detectedEncoding = null;
-		contentTypeEncoding = null;
-		lineSeparator = null;
-
-		if (storage != null) {
-			detectedEncoding = Encodings.detectEncoding(getInputStream());
-			IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());
-			if (contentType != null) {
-				contentTypeEncoding = contentType.getDefaultCharset();
-			}
-			lineSeparator = Encodings.getLineEnding(getInputStream(), getCurrentEncoding());
+		detectedEncoding = Encodings.detectEncoding(getInputStream());
+		IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());
+		if (contentType != null) {
+			contentTypeEncoding = contentType.getDefaultCharset();
 		}
-		// Just assume that the encoding information is updated.
-		return true;
+		lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
 	}
 
 	@Override

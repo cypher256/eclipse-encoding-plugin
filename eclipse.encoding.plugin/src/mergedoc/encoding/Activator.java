@@ -55,10 +55,10 @@ public class Activator extends AbstractUIPlugin {
 
 	@Override
 	protected void initializeImageRegistry(ImageRegistry reg) {
-		putImageAll(reg, "/icons");
+		initIconImage(reg, "/icons");
 	}
 
-	private void putImageAll(ImageRegistry reg, String parentPath) {
+	private void initIconImage(ImageRegistry reg, String parentPath) {
 		Enumeration<String> paths = getBundle().getEntryPaths(parentPath);
 		if (paths == null) { // empty dir
 			return;
@@ -66,7 +66,7 @@ public class Activator extends AbstractUIPlugin {
 		while (paths.hasMoreElements()) {
 			String path = "/" + paths.nextElement();
 			if (path.endsWith("/")) {
-				putImageAll(reg, path); // recursive
+				initIconImage(reg, path); // recursive
 			} else {
 				String fileBaseName = path.replaceFirst(".*?([\\w-]+)\\.\\w+", "$1");
 				reg.put(fileBaseName, imageDescriptorFromPlugin(PLUGIN_ID, path));

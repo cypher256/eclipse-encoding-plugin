@@ -41,6 +41,7 @@ import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 import org.osgi.service.prefs.Preferences;
 
 import mergedoc.encoding.EncodingPreferenceInitializer.PreferenceKey;
+import mergedoc.encoding.document.ActiveDocument;
 
 /**
  * Show the file encoding information for the active document.
@@ -52,7 +53,7 @@ public class EncodingControlContribution extends
 		WorkbenchWindowControlContribution implements IActiveDocumentAgentCallback, PreferenceKey {
 	
 	// The agent is responsible for monitoring the encoding information of the active document.
-	private ActiveDocumentAgent agent = new ActiveDocumentAgent(this);
+	private final ActiveDocumentAgent agent = new ActiveDocumentAgent(this);
 	private Composite statusBar;
 
 	private CLabel encodingLabel;
@@ -75,7 +76,6 @@ public class EncodingControlContribution extends
 		public String value;
 		public String desc;
 		public LineSeparatorItem(String value, String desc) {
-			super();
 			this.value = value;
 			this.desc = desc;
 		}
@@ -221,13 +221,13 @@ public class EncodingControlContribution extends
 
 				// Remove existing menu items.
 				for (MenuItem item: encodingPopupMenu.getItems()) item.dispose();
+				
+				createPreferenceMenu();
+				createEncodingShortcutMenu();
 
 				// Do not allow changing encoding when the document is dirty.
 				warnSaveMessage(agent.isDocumentDirty() && doc.canChangeFileEncoding());
 				boolean enabledAction = !agent.isDocumentDirty() && doc.canChangeFileEncoding();
-				
-				createPreferenceMenu();
-				createShortcutMenu();
 
 				// Create encoding menu meta data
 				final List<EncodingItem> encodingItemList = new ArrayList<EncodingItem>();
@@ -397,6 +397,8 @@ public class EncodingControlContribution extends
 
 				// Remove existing menu items.
 				for (MenuItem item: lineSeparatorPopupMenu.getItems()) item.dispose();
+				
+				createSeparatorShortcutMenu();
 
 				// Do not allow changing encoding when the document is dirty.
 				warnSaveMessage(agent.isDocumentDirty() && doc.canConvertLineSeparator());
@@ -452,7 +454,7 @@ public class EncodingControlContribution extends
 				boolean sel = !prefIs(prefKey);
 				item.setSelection(sel);
 				Activator.getDefault().getPreferenceStore().setValue(prefKey, sel);
-				encodingInfoChanged();
+				encodingChanged();
 			}
 		});
 		return item;
@@ -462,14 +464,14 @@ public class EncodingControlContribution extends
 		return Activator.getDefault().getPreferenceStore().getBoolean(prefKey);
 	}
 	
-	private void createShortcutMenu() {
+	private void createEncodingShortcutMenu() {
 
 		final ActiveDocument doc = agent.getDocument();
 
 		// Workspace Preferences
 		{
 			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
-			item.setText("Workspace Preferences..." + getEncodingLabel(ResourcesPlugin.getEncoding()));
+			item.setText("Workspace Preferences..." + getLabelSuffix(ResourcesPlugin.getEncoding()));
 			item.setImage(Activator.getImage("workspace"));
 			item.addSelectionListener(new SelectionAdapter() {
 				@Override
@@ -495,7 +497,7 @@ public class EncodingControlContribution extends
 				}
 			}
 			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
-			item.setText("Project Properties..." + getEncodingLabel(encoding));
+			item.setText("Project Properties..." + getLabelSuffix(encoding));
 			item.setImage(Activator.getImage("project"));
 			item.setEnabled(project != null);
 			item.addSelectionListener(new SelectionAdapter() {
@@ -516,7 +518,7 @@ public class EncodingControlContribution extends
 				encoding = "Inheritance";
 			}
 			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
-			item.setText("Package Root Properties..." + getEncodingLabel(encoding));
+			item.setText("Package Root Properties..." + getLabelSuffix(encoding));
 			item.setImage(Activator.getImage("root"));
 			item.addSelectionListener(new SelectionAdapter() {
 				@Override
@@ -543,7 +545,7 @@ public class EncodingControlContribution extends
 				}
 			}
 			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
-			item.setText("File Properties..." + getEncodingLabel(encoding));
+			item.setText("File Properties..." + getLabelSuffix(encoding));
 			item.setImage(Activator.getImage("file"));
 			item.setEnabled(file != null);
 			item.addSelectionListener(new SelectionAdapter() {
@@ -591,7 +593,7 @@ public class EncodingControlContribution extends
 					String encoding = pref.get("outputCodeset", "UTF-8");
 					
 					MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
-					item.setText("File Creation Preferences..." + getEncodingLabel(encoding));
+					item.setText("File Creation Preferences..." + getLabelSuffix(encoding));
 					item.setImage(Activator.getImage("file_new"));
 					item.addSelectionListener(new SelectionAdapter() {
 						@Override
@@ -611,7 +613,7 @@ public class EncodingControlContribution extends
 				encoding = "Not Set";
 			}
 			MenuItem item = new MenuItem(encodingPopupMenu, SWT.NONE);
-			item.setText("Content Types Preferences..." + getEncodingLabel(encoding));
+			item.setText("Content Types Preferences..." + getLabelSuffix(encoding));
 			item.setImage(Activator.getImage("content"));
 			item.setEnabled(doc.enabledContentType());
 			item.addSelectionListener(new SelectionAdapter() {
@@ -641,8 +643,52 @@ public class EncodingControlContribution extends
 		}
 		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
+	
+	private void createSeparatorShortcutMenu() {
 
-	private String getEncodingLabel(String encoding) {
+		final ActiveDocument doc = agent.getDocument();
+
+		// Workspace Preferences
+		{
+			MenuItem item = new MenuItem(lineSeparatorPopupMenu, SWT.NONE);
+			item.setText("Workspace Preferences..." + getLabelSuffix(LineSeparators.ofWorkspace()));
+			item.setImage(Activator.getImage("workspace"));
+			item.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					PreferencesUtil.createPreferenceDialogOn(Display.getDefault().getActiveShell(),
+						"org.eclipse.ui.preferencePages.Workspace", null, null).open();
+				}
+			});
+		}
+
+		// Project Properties
+		{
+			final IProject project = doc.getProject();
+			String lineSeparator = null;
+			if (project != null) {
+				lineSeparator = LineSeparators.ofProject(project);
+				if (lineSeparator == null) {
+					lineSeparator = "Inheritance";
+				}
+			}
+			MenuItem item = new MenuItem(lineSeparatorPopupMenu, SWT.NONE);
+			item.setText("Project Properties..." + getLabelSuffix(lineSeparator));
+			item.setImage(Activator.getImage("project"));
+			item.setEnabled(project != null);
+			item.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
+						project,
+						"org.eclipse.ui.propertypages.info.file", null, null).open();
+				}
+			});
+		}
+		new MenuItem(lineSeparatorPopupMenu, SWT.SEPARATOR);
+	}
+	
+	private String getLabelSuffix(String encoding) {
 		if (encoding != null) {
 			return " (" + encoding + ")";
 		}
@@ -665,7 +711,7 @@ public class EncodingControlContribution extends
 	 * Update the encoding information in the label.
 	 * Like after the user switches to another editor.
 	 */
-	public void encodingInfoChanged() {
+	public void encodingChanged() {
 
 		// Cannot make resize work, need to call createControl() again.
 		// Do update in the UI thread.
