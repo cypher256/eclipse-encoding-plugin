@@ -14,7 +14,9 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.IEncodingSupport;
+import org.eclipse.ui.internal.WorkbenchWindow;
 
 import mergedoc.encoding.Activator;
 import mergedoc.encoding.Encodings;
@@ -27,6 +29,7 @@ import mergedoc.encoding.PackageRoot;
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
+@SuppressWarnings("restriction")
 public class ActiveDocument {
 
 	protected IActiveDocumentAgentCallback callback;
@@ -252,7 +255,13 @@ public class ActiveDocument {
 	}
 
 	private void setMessage(String imageIconKey, String message, Object... args) {
-		IStatusLineManager statusLineManager = getStatusLineManager();
+		IStatusLineManager statusLineManager = null;
+		if (editor == null) {
+			WorkbenchWindow window = (WorkbenchWindow) PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+			statusLineManager = window.getActionBars().getStatusLineManager();
+		} else {
+			statusLineManager = editor.getEditorSite().getActionBars().getStatusLineManager();
+		}
 		if (statusLineManager != null) {
 			if (message == null) {
 				statusLineManager.setMessage(null);
@@ -260,12 +269,5 @@ public class ActiveDocument {
 				statusLineManager.setMessage(Activator.getImage(imageIconKey), String.format(message, args));
 			}
 		}
-	}
-	
-	protected IStatusLineManager getStatusLineManager() {
-		if (editor != null) {
-			return editor.getEditorSite().getActionBars().getStatusLineManager();
-		}
-		return null;
 	}
 }

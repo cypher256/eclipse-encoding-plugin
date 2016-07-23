@@ -229,7 +229,7 @@ public class EncodingControlContribution extends
 				// Remove existing menu items.
 				for (MenuItem item: encodingPopupMenu.getItems()) item.dispose();
 
-				createPreferenceMenu();
+				createAutodetectSettingMenu();
 				createEncodingShortcutMenu();
 
 				// Do not allow changing encoding when the document is dirty.
@@ -440,14 +440,14 @@ public class EncodingControlContribution extends
 		});
 	}
 
-	private void createPreferenceMenu() {
+	private void createAutodetectSettingMenu() {
 
 		createToggleMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically");
 		createToggleMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
 		createToggleMenuItem(PREF_DISABLE_UNCERTAIN_OPERATION, "Autodetect: Disable Uncertain Operations");
 		new MenuItem(encodingPopupMenu, SWT.SEPARATOR);
 	}
-
+	
 	private void createToggleMenuItem(final String prefKey, String message) {
 
 		final MenuItem item = new MenuItem(encodingPopupMenu, SWT.CHECK);
@@ -466,10 +466,6 @@ public class EncodingControlContribution extends
 				}
 			}
 		});
-	}
-
-	private boolean prefIs(String prefKey) {
-		return Activator.getDefault().getPreferenceStore().getBoolean(prefKey);
 	}
 
 	private void createEncodingShortcutMenu() {
@@ -699,6 +695,10 @@ public class EncodingControlContribution extends
 			return " (" + encoding + ")";
 		}
 		return "";
+	}
+
+	private boolean prefIs(String prefKey) {
+		return Activator.getDefault().getPreferenceStore().getBoolean(prefKey);
 	}
 
 	@Override
