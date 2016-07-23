@@ -92,7 +92,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 			return new NullDocumentWorkspace();
 		}
 		else if (editor.getAdapter(IEncodingSupport.class) != null) {
-			
+
 			// MultiPartEditor active tab
 			if (editor instanceof FormEditor) {
 				 IEditorPart e = ((FormEditor) editor).getActiveEditor();
@@ -192,10 +192,10 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	 */
 	private void checkActiveEditor() {
 
-		IEditorPart active_editor = getActiveEditor();
-		if (active_editor != currentDocument.getEditor()) {
+		IEditorPart activeEditor = getActiveEditor();
+		if (activeEditor != currentDocument.getEditor()) {
 			// Get a new handler for the active editor, and invoke the callback.
-			setCurrentDocument(getDocument(active_editor));
+			setCurrentDocument(getDocument(activeEditor));
 			callback.encodingChanged();
 		}
 	}
@@ -249,6 +249,10 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	public void pageChanged(PageChangedEvent event) {
 		// MultiPageEditorPart tab changed
 		setCurrentDocument(getDocument(getActiveEditor()));
+		callback.encodingChanged();
+	}
+
+	public void fireEncodingChanged() {
 		callback.encodingChanged();
 	}
 }

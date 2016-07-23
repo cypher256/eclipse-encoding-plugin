@@ -12,11 +12,12 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.content.IContentDescription;
+import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 
-import mergedoc.encoding.Encodings;
+import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
 import mergedoc.encoding.LineSeparators;
 import mergedoc.encoding.PackageRoot;
@@ -36,7 +37,7 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	public WorkspaceFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
 	}
-	
+
 	@Override
 	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		if (!(editor.getEditorInput() instanceof IFileEditorInput)) {
@@ -62,6 +63,15 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
+	public String getFilePropertiesEncoding() {
+		try {
+			return file.getCharset(false); // Non inheritance
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
 	public IContentDescription getContentDescription() {
 		try {
 			return file.getContentDescription();
@@ -71,10 +81,10 @@ public class WorkspaceFileDocument extends ActiveDocument {
 			throw new IllegalStateException(e);
 		}
 	}
-	
+
 	@Override
 	protected void updateEncodingInfo() {
-		
+
 		super.updateEncodingInfo();
 		if (packageRoot == null) {
 			packageRoot = new PackageRoot();
@@ -84,17 +94,28 @@ public class WorkspaceFileDocument extends ActiveDocument {
 
 		try {
 			inheritedEncoding = file.getParent().getDefaultCharset();
-			detectedEncoding = Encodings.detectEncoding(getInputStream());
+			detectedCharset = Charsets.detect(getInputStream());
+
 			IContentDescription contentDescription = getContentDescription();
 			if (contentDescription != null) {
-				contentTypeEncoding = contentDescription.getCharset();
+				contentCharset = contentDescription.getCharset();
+				if (contentCharset != null && getFilePropertiesEncoding() == null) {
+					currentEncoding = contentCharset;
+				}
+				IContentType contentType = contentDescription.getContentType();
+				if (contentType != null) {
+					contentTypeEncoding = contentType.getDefaultCharset();
+					if (Charsets.equals(contentCharset, contentTypeEncoding)) {
+						contentCharset = null;
+					}
+				}
 			}
-			
+
 			lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
 			if (lineSeparator == null) {
 				lineSeparator = LineSeparators.resolve(file);
 			}
-			
+
 			IEditorInput editorInput = editor.getEditorInput();
 			Object ele = AdapterManager.getDefault().getAdapter(editorInput, "org.eclipse.jdt.core.IJavaElement");
 			if (ele != null) {

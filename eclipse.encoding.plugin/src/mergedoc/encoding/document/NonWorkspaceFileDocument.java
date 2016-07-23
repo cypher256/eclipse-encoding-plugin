@@ -9,6 +9,8 @@ import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ide.FileStoreEditorInput;
@@ -16,9 +18,9 @@ import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.IDocumentProviderExtension;
 
-import mergedoc.encoding.Encodings;
+import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
-import mergedoc.encoding.IOs;
+import mergedoc.encoding.Langs;
 import mergedoc.encoding.LineSeparators;
 
 /**
@@ -30,19 +32,19 @@ import mergedoc.encoding.LineSeparators;
 public class NonWorkspaceFileDocument extends ActiveDocument {
 
 	// The text file associated with the editor.
-	private IFileStore text_file_store = null;
+	private IFileStore fileStore;
 
 	public NonWorkspaceFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
 	}
-	
+
 	@Override
 	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		if (!(editor.getEditorInput() instanceof FileStoreEditorInput)) {
 			throw new IllegalArgumentException("part must provide FileStoreEditorInput.");
 		}
 		try {
-			text_file_store = EFS.getStore(((FileStoreEditorInput) editor.getEditorInput()).getURI());
+			fileStore = EFS.getStore(((FileStoreEditorInput) editor.getEditorInput()).getURI());
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
@@ -50,16 +52,46 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
+	public IContentDescription getContentDescription() {
+		IContentType contentType = getContentType();
+		if (contentType != null) {
+			return contentType.getDefaultDescription();
+		}
+		return null;
+	}
+
+	public IContentType getContentType() {
+		return Platform.getContentTypeManager().findContentTypeFor(getFileName());
+	}
+
+	@Override
 	protected void updateEncodingInfo() {
-		
+
 		super.updateEncodingInfo();
 
-		if (text_file_store != null) {
+		if (fileStore != null) {
 			inheritedEncoding = ResourcesPlugin.getEncoding();
-			detectedEncoding = Encodings.detectEncoding(getInputStream());
-			IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());
+			detectedCharset = Charsets.detect(getInputStream());
+
+			IContentType contentType = getContentType();
 			if (contentType != null) {
 				contentTypeEncoding = contentType.getDefaultCharset();
+
+				InputStream inputStream = getInputStream();
+				try {
+					IContentDescription description = contentType.getDescriptionFor(
+						inputStream, new QualifiedName[]{IContentDescription.CHARSET});
+					if (description != null) {
+						contentCharset = description.getCharset();
+						if (contentCharset != null) {
+							currentEncoding = contentCharset;
+						}
+					}
+				} catch (IOException e) {
+					throw new IllegalStateException(e);
+				} finally {
+					Langs.closeQuietly(inputStream);
+				}
 			}
 			lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
 		}
@@ -77,7 +109,7 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 	@Override
 	protected InputStream getInputStream() {
 		try {
-			return text_file_store.openInputStream(EFS.NONE, null);
+			return fileStore.openInputStream(EFS.NONE, null);
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
@@ -87,7 +119,7 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 	protected void setContentString(String content, String storeEncoding) {
 		OutputStream os = null;
 		try {
-			os = text_file_store.openOutputStream(EFS.NONE, null);
+			os = fileStore.openOutputStream(EFS.NONE, null);
 			os.write(content.getBytes(storeEncoding));
 			os.flush();
 			IDocumentProvider provider = ((AbstractTextEditor) getEditor()).getDocumentProvider();
@@ -97,7 +129,7 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			IOs.closeQuietly(os);
+			Langs.closeQuietly(os);
 		}
 	}
 }

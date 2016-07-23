@@ -12,7 +12,7 @@ import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IStorageEditorInput;
 
-import mergedoc.encoding.Encodings;
+import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
 import mergedoc.encoding.LineSeparators;
 
@@ -85,7 +85,7 @@ public class StorageFileDocument extends ActiveDocument {
 
 		super.updateEncodingInfo();
 
-		detectedEncoding = Encodings.detectEncoding(getInputStream());
+		detectedCharset = Charsets.detect(getInputStream());
 		IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());
 		if (contentType != null) {
 			contentTypeEncoding = contentType.getDefaultCharset();

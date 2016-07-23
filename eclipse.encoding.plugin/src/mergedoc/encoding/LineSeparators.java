@@ -22,6 +22,11 @@ public class LineSeparators {
 	private LineSeparators() {
 	}
 
+	/**
+	 * @param is The input stream will be closed by this operation.
+	 * @param encoding
+	 * @return Line separator string
+	 */
 	public static String ofContent(InputStream is, String encoding) {
 		if (is == null) {
 			return null;
@@ -34,6 +39,10 @@ public class LineSeparators {
 		}
 	}
 
+	/**
+	 * @param reader The reader will be closed by this operation.
+	 * @return Line separator string
+	 */
 	public static String ofContent(Reader reader) {
 		try {
 			boolean crlf = false;
@@ -77,10 +86,10 @@ public class LineSeparators {
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			IOs.closeQuietly(reader);
+			Langs.closeQuietly(reader);
 		}
 	}
-	
+
 	public static String resolve(IResource resource) {
 		String lineSeparator = null;
 		if (resource != null) {
@@ -91,14 +100,14 @@ public class LineSeparators {
 		}
 		return lineSeparator;
 	}
-	
+
 	public static String ofProject(IResource resource) {
 		IPreferencesService prefs = Platform.getPreferencesService();
 		IScopeContext[] scopeContext = new IScopeContext[] { new ProjectScope(resource.getProject()) };
 		String lineSeparator = prefs.getString(Platform.PI_RUNTIME, Platform.PREF_LINE_SEPARATOR, null, scopeContext);
 		return toLabel(lineSeparator);
 	}
-	
+
 	public static String ofWorkspace() {
 		IPreferencesService prefs = Platform.getPreferencesService();
 		IScopeContext[] scopeContext = new IScopeContext[] { InstanceScope.INSTANCE };
@@ -108,7 +117,7 @@ public class LineSeparators {
 		}
 		return toLabel(lineSeparator);
 	}
-	
+
 	private static String toLabel(String lineSeparator) {
 		if ("\r\n".equals(lineSeparator)) {
 			return "CRLF";

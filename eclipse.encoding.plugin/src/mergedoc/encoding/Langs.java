@@ -3,9 +3,14 @@ package mergedoc.encoding;
 import java.io.Closeable;
 import java.io.IOException;
 
-public class IOs {
+import org.apache.commons.lang.StringUtils;
 
-	private IOs() {
+/**
+ * @author Shinji Kashihara
+ */
+public class Langs {
+
+	private Langs() {
 	}
 
 	public static void closeQuietly(Closeable closeable) {
@@ -16,5 +21,9 @@ public class IOs {
 				throw new IllegalStateException(e);
 			}
 		}
+	}
+
+	public static String parentheses(String encoding) {
+		return StringUtils.isEmpty(encoding) ? "" : " (" + encoding + ")";
 	}
 }

@@ -1,5 +1,7 @@
 package mergedoc.encoding.document;
 
+import static java.lang.String.*;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,9 +21,9 @@ import org.eclipse.ui.editors.text.IEncodingSupport;
 import org.eclipse.ui.internal.WorkbenchWindow;
 
 import mergedoc.encoding.Activator;
-import mergedoc.encoding.Encodings;
+import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
-import mergedoc.encoding.IOs;
+import mergedoc.encoding.Langs;
 import mergedoc.encoding.PackageRoot;
 
 /**
@@ -34,12 +36,14 @@ public class ActiveDocument {
 
 	protected IActiveDocumentAgentCallback callback;
 	protected IEditorPart editor;
+	protected String lineSeparator;
 	protected IEncodingSupport encodingSupport;
+
 	protected String currentEncoding;
 	protected String inheritedEncoding;
-	protected String detectedEncoding;
+	protected String detectedCharset;
 	protected String contentTypeEncoding;
-	protected String lineSeparator;
+	protected String contentCharset;
 
 	public ActiveDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		init(editor, callback);
@@ -52,7 +56,7 @@ public class ActiveDocument {
 		if (editor == null) throw new IllegalArgumentException("editor must not be null.");
 		if (callback == null) throw new IllegalArgumentException("callback must not be null.");
 
-		this.encodingSupport = (IEncodingSupport) editor.getAdapter(IEncodingSupport.class);
+		this.encodingSupport = editor.getAdapter(IEncodingSupport.class);
 		if (encodingSupport == null) throw new IllegalArgumentException("editor must provide IEncodingSupport.");
 
 		updateEncodingInfo();
@@ -74,6 +78,9 @@ public class ActiveDocument {
 	public IFile getFile() {
 		return null;
 	}
+	public String getFilePropertiesEncoding() {
+		return null;
+	}
 	public IContentDescription getContentDescription() {
 		return null;
 	}
@@ -84,6 +91,9 @@ public class ActiveDocument {
 	 */
 	public String getFileName() {
 		return editor.getEditorInput().getName();
+	}
+	public String getLineSeparator() {
+		return lineSeparator;
 	}
 
 	/**
@@ -96,21 +106,21 @@ public class ActiveDocument {
 	public String getInheritedEncoding() {
 		return inheritedEncoding;
 	}
-	public String getDetectedEncoding() {
-		return detectedEncoding;
+	public String getDetectedCharset() {
+		return detectedCharset;
 	}
 	public String getContentTypeEncoding() {
 		return contentTypeEncoding;
 	}
-	public String getLineSeparator() {
-		return lineSeparator;
+	public String getContentCharset() {
+		return contentCharset;
 	}
-	
+
 	public boolean matchesEncoding() {
-		return detectedEncoding != null && Encodings.areCharsetsEqual(detectedEncoding, currentEncoding);
+		return detectedCharset != null && Charsets.equals(detectedCharset, currentEncoding);
 	}
 	public boolean mismatchesEncoding() {
-		return detectedEncoding != null && !Encodings.areCharsetsEqual(detectedEncoding, currentEncoding);
+		return detectedCharset != null && !Charsets.equals(detectedCharset, currentEncoding);
 	}
 
 	public void propertyChanged(Object source, int propId) {
@@ -136,50 +146,58 @@ public class ActiveDocument {
 	 * Set the encoding of the active document, if supported by the editor.
 	 */
 	public void setEncoding(String encoding) {
+
+		String contentCharset = null;
+		IContentDescription contentDescription = getContentDescription();
+		if (contentDescription != null) {
+			contentCharset = contentDescription.getCharset();
+		}
+		if (contentCharset != null) {
+			if (Charsets.equals(encoding, contentCharset)) {
+				encoding = null;
+			}
+		} else if (Charsets.equals(encoding, inheritedEncoding)) {
+			encoding = null;
+		}
 		try {
-			// null is inheritance
-			if (Encodings.areCharsetsEqual(encoding, contentTypeEncoding)) {
-				encoding = null;
-			}
-			else if (Encodings.areCharsetsEqual(encoding, inheritedEncoding) && contentTypeEncoding == null) {
-				encoding = null;
-			}
+			// Null is clear for inheritance
 			encodingSupport.setEncoding(encoding);
 		} catch (Exception e) {
 			// Ignore BackingStoreException for not sync project preferences store
+			Activator.info("Failed set encoding", e);
 		}
 		if (updateEncoding()) {
-			// Invoke the callback if the encoding information is changed.
+			// Invoke the callback if the encoding information is changed
 			callback.encodingChanged();
 		}
 	}
 
 	protected final boolean updateEncoding() {
-		
+
 		String currentEncodingOld = currentEncoding;
-		String detectedEncodingOld = detectedEncoding;
+		String detectedCharsetOld = detectedCharset;
 		String lineSeparatorOld = lineSeparator;
-		
+
 		updateEncodingInfo();
-		
-		return 
+
+		return
 			!StringUtils.equals(currentEncodingOld, currentEncoding) ||
-			!StringUtils.equals(detectedEncodingOld, detectedEncoding) ||
+			!StringUtils.equals(detectedCharsetOld, detectedCharset) ||
 			!StringUtils.equals(lineSeparatorOld, lineSeparator);
 	}
-	
+
 	/**
 	 * Update the encoding information in member variables.
 	 * This method may be overrided, but should be called by the sub-class.
 	 */
 	protected void updateEncodingInfo() {
-		
+
 		currentEncoding = null;
 		inheritedEncoding = null;
-		detectedEncoding = null;
+		detectedCharset = null;
 		contentTypeEncoding = null;
 		lineSeparator = null;
-		
+
 		if (encodingSupport != null) {
 			currentEncoding = encodingSupport.getEncoding();
 			if (currentEncoding == null) {
@@ -222,7 +240,7 @@ public class ActiveDocument {
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			IOs.closeQuietly(is);
+			Langs.closeQuietly(is);
 		}
 	}
 
@@ -254,6 +272,14 @@ public class ActiveDocument {
 		setMessage("warn", message, args);
 	}
 
+	public void warnDirtyMessage(boolean showsWarn) {
+		if (showsWarn) {
+			warnMessage("Editor must be saved before status bar action.");
+		} else {
+			warnMessage(null);
+		}
+	}
+
 	private void setMessage(String imageIconKey, String message, Object... args) {
 		IStatusLineManager statusLineManager = null;
 		if (editor == null) {
@@ -266,7 +292,7 @@ public class ActiveDocument {
 			if (message == null) {
 				statusLineManager.setMessage(null);
 			} else {
-				statusLineManager.setMessage(Activator.getImage(imageIconKey), String.format(message, args));
+				statusLineManager.setMessage(Activator.getImage(imageIconKey), format(message, args));
 			}
 		}
 	}

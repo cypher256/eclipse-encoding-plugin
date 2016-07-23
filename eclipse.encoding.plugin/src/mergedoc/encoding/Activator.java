@@ -31,6 +31,7 @@ public class Activator extends AbstractUIPlugin {
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
+	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
@@ -40,6 +41,7 @@ public class Activator extends AbstractUIPlugin {
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
+	@Override
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
 		super.stop(context);
@@ -53,12 +55,16 @@ public class Activator extends AbstractUIPlugin {
 		return plugin;
 	}
 
-	@Override
-	protected void initializeImageRegistry(ImageRegistry reg) {
-		initIconImage(reg, "/icons");
+	public static boolean prefIs(String prefKey) {
+		return plugin.getPreferenceStore().getBoolean(prefKey);
 	}
 
-	private void initIconImage(ImageRegistry reg, String parentPath) {
+	@Override
+	protected void initializeImageRegistry(ImageRegistry reg) {
+		loadImage(reg, "/icons");
+	}
+
+	private void loadImage(ImageRegistry reg, String parentPath) {
 		Enumeration<String> paths = getBundle().getEntryPaths(parentPath);
 		if (paths == null) { // empty dir
 			return;
@@ -66,7 +72,7 @@ public class Activator extends AbstractUIPlugin {
 		while (paths.hasMoreElements()) {
 			String path = "/" + paths.nextElement();
 			if (path.endsWith("/")) {
-				initIconImage(reg, path); // recursive
+				loadImage(reg, path); // recursive
 			} else {
 				String fileBaseName = path.replaceFirst(".*?([\\w-]+)\\.\\w+", "$1");
 				reg.put(fileBaseName, imageDescriptorFromPlugin(PLUGIN_ID, path));

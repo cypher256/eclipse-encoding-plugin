@@ -4,19 +4,21 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.graphics.Image;
 
 /**
- * Provide encoding related utility functions.
+ * Provide charset related utility functions.
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-public class Encodings {
+public class Charsets {
 
-	private Encodings() {
+	private Charsets() {
 	}
 
 	/**
@@ -27,7 +29,7 @@ public class Encodings {
 	 * @param b The second charset string.
 	 * @return true/false
 	 */
-	public static boolean areCharsetsEqual(String a, String b) {
+	public static boolean equals(String a, String b) {
 		if (a == null || b == null) return false;
 		try {
 			return Charset.forName(a).name().equals(Charset.forName(b).name());
@@ -41,7 +43,7 @@ public class Encodings {
 	 * @param in The input stream, should close the stream before return.
 	 * @return the detected charsets or null.
 	 */
-	public static String detectEncoding(InputStream in) {
+	public static String detect(InputStream in) {
 		if (in != null) {
 			InputStream bin = new BufferedInputStream(in);
 			try {
@@ -52,30 +54,30 @@ public class Encodings {
 					detector.handleData(buf, 0, nread);
 				}
 				detector.dataEnd();
-				String encoding = detector.getDetectedCharset();
-				if (encoding != null) {
-					encoding = Charset.forName(encoding).name();
-					String windowsEncoding = windowsEncodingMap.get(encoding.toLowerCase());
+				String charset = detector.getDetectedCharset();
+				if (charset != null) {
+					charset = Charset.forName(charset).name();
+					String windowsEncoding = windowsCharsetMap.get(charset.toLowerCase());
 					if (windowsEncoding != null) {
-						encoding = windowsEncoding;
+						charset = windowsEncoding;
 					}
 				}
-				return encoding;
+				return charset;
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			} finally {
-				IOs.closeQuietly(bin);
+				Langs.closeQuietly(bin);
 			}
 		}
 		return null;
 	}
 
 	/**
-	 * Windows default encoding mappings.
+	 * Windows default charset mappings.
 	 * key  : java.nio canonical name (java.nio.charset.Charset#name lower case)
 	 * value: java.io  canonical name (Windows Java default encoding name)
 	 */
-	private static final Map<String, String> windowsEncodingMap = new HashMap<String, String>() {{
+	private static final Map<String, String> windowsCharsetMap = new HashMap<String, String>() {{
 		put("shift_jis", "MS932");
 		put("windows-31j", "MS932");
 		put("windows-1250", "Cp1250");
@@ -92,8 +94,8 @@ public class Encodings {
 		put("x-windows-950", "MS950");
 	}};
 
-	public static Image getImage(String encoding) {
-		String name = Charset.forName(encoding).name().toLowerCase();
+	public static Image getImage(String charset) {
+		String name = Charset.forName(charset).name().toLowerCase();
 		if (name.equals("windows-31j") || name.contains("jp") || name.contains("jis")) {
 			return Activator.getImage("japan");
 		}
@@ -134,5 +136,17 @@ public class Encodings {
 			return Activator.getImage("unicode");
 		}
 		return null;
+	}
+
+	public static void add(List<String> charsetList, String charset) {
+		if (charset != null) {
+			for (String e : charsetList) {
+				if (Charsets.equals(e, charset)) {
+					return;
+				}
+			}
+			charsetList.add(charset);
+			Collections.sort(charsetList);
+		}
 	}
 }
