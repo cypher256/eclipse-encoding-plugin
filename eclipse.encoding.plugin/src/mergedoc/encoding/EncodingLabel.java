@@ -225,7 +225,7 @@ public class EncodingLabel implements PreferenceKey {
 				}
 			}
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText("File Properties..." + parentheses(encoding));
+			item.setText(format("File Properties...") + parentheses(encoding));
 			item.setImage(Activator.getImage("file"));
 			item.setEnabled(file != null);
 			item.addSelectionListener(new SelectionAdapter() {
