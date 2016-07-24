@@ -217,11 +217,11 @@ public class EncodingLabel implements PreferenceKey {
 			if (encoding == null) {
 				String currentEncoding = doc.getCurrentEncoding();
 				if (Charsets.equals(currentEncoding, doc.getContentTypeEncoding())) {
-					encoding = "Content Type";
+					encoding = format("Content Type");
 				} else if (Charsets.equals(currentEncoding, doc.getContentCharset())) {
 					encoding = currentEncoding + format(" Content");
 				} else {
-					encoding = "Inheritance";
+					encoding = format("Inheritance");
 				}
 			}
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
