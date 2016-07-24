@@ -240,6 +240,8 @@ public class EncodingLabel implements PreferenceKey {
 
 		// File Creation Preferences
 		{
+			creationEncoding = null;
+
 			// Null if non plugin for editor
 			IContentDescription contentDescription = doc.getContentDescription();
 			if (contentDescription != null) {
