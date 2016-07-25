@@ -426,7 +426,7 @@ public class EncodingLabel implements PreferenceKey {
 			});
 		}
 
-		// Create change encoding for autodetect
+		// Change encoding for Autodetect
 		final MenuItem detectItem = new MenuItem(popupMenu, SWT.NONE);
 		detectItem.setImage(Activator.getImage("autodetect"));
 
