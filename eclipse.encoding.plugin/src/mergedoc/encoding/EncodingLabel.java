@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -357,12 +356,12 @@ public class EncodingLabel implements PreferenceKey {
 					add(Charsets.equals(encoding, creationEncoding), "Creation");
 				}
 				public void add(boolean enable, String text) {
-					if (enable && size() < 3) { // Limit size for display width
-						super.add(format(text));
+					if (enable) {
+						super.add(text);
 					}
 				}
 			};
-			i.menuText = formatLabel(i.encoding, StringUtils.join(noteList, ", "));
+			i.menuText = formatLabel(i.encoding, noteList);
 		}
 
 		// Convert Charset
