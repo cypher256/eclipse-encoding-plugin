@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -20,7 +21,6 @@ import org.eclipse.ui.texteditor.IDocumentProviderExtension;
 
 import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
-import mergedoc.encoding.Langs;
 import mergedoc.encoding.LineSeparators;
 
 /**
@@ -90,7 +90,7 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 				} catch (IOException e) {
 					throw new IllegalStateException(e);
 				} finally {
-					Langs.closeQuietly(inputStream);
+					IOUtils.closeQuietly(inputStream);
 				}
 			}
 			lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
@@ -129,7 +129,7 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			Langs.closeQuietly(os);
+			IOUtils.closeQuietly(os);
 		}
 	}
 }

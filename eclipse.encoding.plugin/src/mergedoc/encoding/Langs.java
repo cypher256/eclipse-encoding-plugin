@@ -1,7 +1,6 @@
 package mergedoc.encoding;
 
-import java.io.Closeable;
-import java.io.IOException;
+import static java.lang.String.*;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -13,17 +12,10 @@ public class Langs {
 	private Langs() {
 	}
 
-	public static void closeQuietly(Closeable closeable) {
-		if (closeable != null) {
-			try {
-				closeable.close();
-			} catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
+	public static String formatLabel(String text, String note) {
+		if (StringUtils.isEmpty(note)) {
+			return format(text);
 		}
-	}
-
-	public static String parentheses(String encoding) {
-		return StringUtils.isEmpty(encoding) ? "" : " (" + encoding + ")";
+		return format(text) + " (" + format(note) + ")";
 	}
 }

@@ -2,11 +2,10 @@ package mergedoc.encoding.document;
 
 import static java.lang.String.*;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -23,7 +22,6 @@ import org.eclipse.ui.internal.WorkbenchWindow;
 import mergedoc.encoding.Activator;
 import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
-import mergedoc.encoding.Langs;
 import mergedoc.encoding.PackageRoot;
 
 /**
@@ -226,21 +224,13 @@ public class ActiveDocument {
 
 	// Note: Process on String, not stream. Unsupport big file.
 	protected String getContentString() {
-		InputStream is = null;
+		InputStream inputStream = getInputStream();
 		try {
-			is = getInputStream();
-			InputStreamReader reader = new InputStreamReader(new BufferedInputStream(is), getCurrentEncoding());
-			StringBuilder sb = new StringBuilder();
-			char[] buff = new char[4096];
-			int read;
-			while((read = reader.read(buff)) != -1) {
-			    sb.append(buff, 0, read);
-			}
-			return sb.toString();
+			return IOUtils.toString(inputStream, getCurrentEncoding());
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			Langs.closeQuietly(is);
+			IOUtils.closeQuietly(inputStream);
 		}
 	}
 

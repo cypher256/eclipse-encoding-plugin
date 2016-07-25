@@ -151,7 +151,7 @@ public class EncodingLabel implements PreferenceKey {
 		// Workspace Preferences
 		{
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText("Workspace Preferences..." + parentheses(ResourcesPlugin.getEncoding()));
+			item.setText(formatLabel("Workspace Preferences...", ResourcesPlugin.getEncoding()));
 			item.setImage(Activator.getImage("workspace"));
 			item.addSelectionListener(new SelectionAdapter() {
 				@Override
@@ -177,7 +177,7 @@ public class EncodingLabel implements PreferenceKey {
 				}
 			}
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText("Project Properties..." + parentheses(encoding));
+			item.setText(formatLabel("Project Properties...", encoding));
 			item.setImage(Activator.getImage("project"));
 			item.setEnabled(project != null);
 			item.addSelectionListener(new SelectionAdapter() {
@@ -198,7 +198,7 @@ public class EncodingLabel implements PreferenceKey {
 				encoding = "Inheritance";
 			}
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText("Package Root Properties..." + parentheses(encoding));
+			item.setText(formatLabel("Package Root Properties...", encoding));
 			item.setImage(Activator.getImage("root"));
 			item.addSelectionListener(new SelectionAdapter() {
 				@Override
@@ -217,15 +217,15 @@ public class EncodingLabel implements PreferenceKey {
 			if (encoding == null) {
 				String currentEncoding = doc.getCurrentEncoding();
 				if (Charsets.equals(currentEncoding, doc.getContentTypeEncoding())) {
-					encoding = format("Content Type");
+					encoding = "Content Type";
 				} else if (Charsets.equals(currentEncoding, doc.getContentCharset())) {
 					encoding = currentEncoding + format(" Content");
 				} else {
-					encoding = format("Inheritance");
+					encoding = "Inheritance";
 				}
 			}
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText(format("File Properties...") + parentheses(encoding));
+			item.setText(formatLabel("File Properties...", encoding));
 			item.setImage(Activator.getImage("file"));
 			item.setEnabled(file != null);
 			item.addSelectionListener(new SelectionAdapter() {
@@ -273,7 +273,7 @@ public class EncodingLabel implements PreferenceKey {
 					creationEncoding = pref.get("outputCodeset", "UTF-8");
 
 					MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-					item.setText("File Creation Preferences..." + parentheses(creationEncoding));
+					item.setText(formatLabel("File Creation Preferences...", creationEncoding));
 					item.setImage(Activator.getImage("file_new"));
 					item.addSelectionListener(new SelectionAdapter() {
 						@Override
@@ -293,7 +293,7 @@ public class EncodingLabel implements PreferenceKey {
 				encoding = "Not Set";
 			}
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText("Content Types Preferences..." + parentheses(encoding));
+			item.setText(formatLabel("Content Types Preferences...", encoding));
 			item.setImage(Activator.getImage("content"));
 			item.setEnabled(doc.enabledContentType());
 			item.addSelectionListener(new SelectionAdapter() {
@@ -350,24 +350,19 @@ public class EncodingLabel implements PreferenceKey {
 
 			List<String> descList = new ArrayList<String>() {
 				{
-					add(Charsets.equals(encoding, doc.getContentCharset()),
-							"Content");
-					add(Charsets.equals(encoding, doc.getContentTypeEncoding()),
-							"Content Type");
-					add(Charsets.equals(encoding, doc.getInheritedEncoding()),
-							"Inheritance");
-					add(Charsets.equals(encoding, doc.getDetectedCharset()),
-							"Autodetect");
-					add(Charsets.equals(encoding, creationEncoding),
-							"Creation");
+					add(Charsets.equals(encoding, doc.getContentCharset()), "Content");
+					add(Charsets.equals(encoding, doc.getContentTypeEncoding()), "Content Type");
+					add(Charsets.equals(encoding, doc.getInheritedEncoding()), "Inheritance");
+					add(Charsets.equals(encoding, doc.getDetectedCharset()), "Autodetect");
+					add(Charsets.equals(encoding, creationEncoding), "Creation");
 				}
 				public void add(boolean enable, String text) {
-					if (enable && size() <= 2) {
+					if (enable && size() < 3) { // Limit size for display width
 						super.add(format(text));
 					}
 				}
 			};
-			i.menuText = i.encoding + parentheses(StringUtils.join(descList, ", "));
+			i.menuText = formatLabel(i.encoding, StringUtils.join(descList, ", "));
 		}
 
 		// Convert Charset

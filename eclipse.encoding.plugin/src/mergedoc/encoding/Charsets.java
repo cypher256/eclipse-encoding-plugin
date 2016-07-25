@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.swt.graphics.Image;
 
 /**
@@ -66,7 +67,7 @@ public class Charsets {
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			} finally {
-				Langs.closeQuietly(bin);
+				IOUtils.closeQuietly(bin);
 			}
 		}
 		return null;

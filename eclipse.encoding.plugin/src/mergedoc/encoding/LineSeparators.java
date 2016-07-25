@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.Platform;
@@ -86,7 +87,7 @@ public class LineSeparators {
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {
-			Langs.closeQuietly(reader);
+			IOUtils.closeQuietly(reader);
 		}
 	}
 

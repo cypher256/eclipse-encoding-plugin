@@ -105,7 +105,7 @@ public class LineSeparatorLabel implements PreferenceKey {
 		// Workspace Preferences
 		{
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText("Workspace Preferences..." + parentheses(LineSeparators.ofWorkspace()));
+			item.setText(formatLabel("Workspace Preferences...", LineSeparators.ofWorkspace()));
 			item.setImage(Activator.getImage("workspace"));
 			item.addSelectionListener(new SelectionAdapter() {
 				@Override
@@ -127,7 +127,7 @@ public class LineSeparatorLabel implements PreferenceKey {
 				}
 			}
 			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText("Project Properties..." + parentheses(lineSeparator));
+			item.setText(formatLabel("Project Properties...", lineSeparator));
 			item.setImage(Activator.getImage("project"));
 			item.setEnabled(project != null);
 			item.addSelectionListener(new SelectionAdapter() {
