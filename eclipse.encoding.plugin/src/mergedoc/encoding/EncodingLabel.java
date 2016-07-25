@@ -384,7 +384,6 @@ public class EncodingLabel implements PreferenceKey {
 			MenuItem item = new MenuItem(convertMenu, SWT.NONE);
 			item.setText(i.menuText);
 			item.setImage(Charsets.getImage(i.encoding));
-
 			item.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
