@@ -22,9 +22,11 @@ public class Langs {
 	public static String formatLabel(String text, String... noteArray) {
 		ArrayList<String> noteList = new ArrayList<String>();
 		for (String n : noteArray) {
-			noteList.add(format(n));
-			if (noteList.size() == 3) { // Size limit for display width
-				break;
+			if (n != null) {
+				noteList.add(format(n));
+				if (noteList.size() == 3) { // Size limit for display width
+					break;
+				}
 			}
 		}
 		String note = StringUtils.join(noteList, ", ");
