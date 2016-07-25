@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -16,7 +17,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.ui.dialogs.PreferencesUtil;
@@ -30,7 +30,7 @@ import mergedoc.encoding.document.ActiveDocument;
 public class LineSeparatorLabel implements PreferenceKey {
 
 	private final ActiveDocumentAgent agent;
-	private final Label label;
+	private final CLabel label;
 	private Menu popupMenu;
 	private List<SeparatorItem> separatorItemList;
 
@@ -45,7 +45,7 @@ public class LineSeparatorLabel implements PreferenceKey {
 
 	public LineSeparatorLabel(ActiveDocumentAgent agent, Composite statusBar, int widthHint) {
 		this.agent = agent;
-		label = new Label(statusBar, SWT.LEFT);
+		label = new CLabel(statusBar, SWT.LEFT);
 		GridData gridData = new GridData();
 		gridData.widthHint = widthHint;
 		label.setLayoutData(gridData);
@@ -55,7 +55,7 @@ public class LineSeparatorLabel implements PreferenceKey {
 
 		ActiveDocument doc = agent.getDocument();
 		if (doc.getLineSeparator() == null) {
-			label.setText(""); // Label null NG, CLabel null OK
+			label.setText(null);
 			label.setMenu(null);
 			label.setToolTipText(null);
 			return;

@@ -348,7 +348,7 @@ public class EncodingLabel implements PreferenceKey {
 			encodingItemList.add(i);
 			i.encoding = encoding;
 
-			List<String> descList = new ArrayList<String>() {
+			List<String> noteList = new ArrayList<String>() {
 				{
 					add(Charsets.equals(encoding, doc.getContentCharset()), "Content");
 					add(Charsets.equals(encoding, doc.getContentTypeEncoding()), "Content Type");
@@ -362,7 +362,7 @@ public class EncodingLabel implements PreferenceKey {
 					}
 				}
 			};
-			i.menuText = formatLabel(i.encoding, StringUtils.join(descList, ", "));
+			i.menuText = formatLabel(i.encoding, StringUtils.join(noteList, ", "));
 		}
 
 		// Convert Charset
