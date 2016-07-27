@@ -81,9 +81,9 @@ public class StorageFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void updateEncodingInfo() {
+	protected void updateEncoding() {
 
-		super.updateEncodingInfo();
+		super.updateEncoding();
 
 		detectedCharset = Charsets.detect(getInputStream());
 		IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());

@@ -40,6 +40,7 @@ import mergedoc.encoding.EncodingPreferenceInitializer.PreferenceKey;
 import mergedoc.encoding.document.ActiveDocument;
 
 /**
+ * Encoding label shown in the status bar.
  * @author Shinji Kashihara
  */
 @SuppressWarnings("restriction")
@@ -73,7 +74,7 @@ public class EncodingLabel implements PreferenceKey {
 			label.setMenu(null);
 			return;
 		}
-		label.setText(doc.getCurrentEncoding());
+		label.setText(doc.getCurrentEncodingLabel());
 
 		if (doc.mismatchesEncoding() && prefIs(PREF_AUTODETECT_WARN)) {
 			String message = "Detected charset %s (Current setting: %s)";
@@ -118,26 +119,26 @@ public class EncodingLabel implements PreferenceKey {
 
 		createSettingMenuItem(PREF_AUTODETECT_CHANGE, "Autodetect: Set Automatically");
 		createSettingMenuItem(PREF_AUTODETECT_WARN, "Autodetect: Show Warning");
-		createSettingMenuItem(PREF_DISABLE_UNCERTAIN_OPERATION, "Autodetect: Disable Uncertain Operations");
+		createSettingMenuItem(PREF_DISABLE_DISCOURAGED_OPERATION, "Autodetect: Disable Discouraged Operations");
 		new MenuItem(popupMenu, SWT.SEPARATOR);
 	}
 
 	private void createSettingMenuItem(final String prefKey, String message) {
 
-		final MenuItem item = new MenuItem(popupMenu, SWT.CHECK);
-		item.setText(message);
-		item.setSelection(prefIs(prefKey));
-		item.addSelectionListener(new SelectionAdapter() {
+		final MenuItem menuItem = new MenuItem(popupMenu, SWT.CHECK);
+		menuItem.setText(message);
+		menuItem.setSelection(prefIs(prefKey));
+		menuItem.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				boolean sel = !prefIs(prefKey);
-				item.setSelection(sel);
+				menuItem.setSelection(sel);
 				Activator.getDefault().getPreferenceStore().setValue(prefKey, sel);
 				agent.fireEncodingChanged();
 				if (sel && prefKey.equals(PREF_AUTODETECT_CHANGE)) {
 					ActiveDocument doc = agent.getDocument();
-					doc.warnMessage("'Set automatically' only applies when the file properties encoding is not set.");
+					doc.infoMessage("'Set automatically' only applies when the file properties encoding is not set.");
 				}
 			}
 		});
@@ -149,10 +150,10 @@ public class EncodingLabel implements PreferenceKey {
 
 		// Workspace Preferences
 		{
-			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText(formatLabel("Workspace Preferences...", ResourcesPlugin.getEncoding()));
-			item.setImage(Activator.getImage("workspace"));
-			item.addSelectionListener(new SelectionAdapter() {
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("Workspace Preferences...", ResourcesPlugin.getEncoding()));
+			menuItem.setImage(Activator.getImage("workspace"));
+			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					PreferencesUtil.createPreferenceDialogOn(Display.getDefault().getActiveShell(),
@@ -175,11 +176,11 @@ public class EncodingLabel implements PreferenceKey {
 					encoding = "Inheritance";
 				}
 			}
-			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText(formatLabel("Project Properties...", encoding));
-			item.setImage(Activator.getImage("project"));
-			item.setEnabled(project != null);
-			item.addSelectionListener(new SelectionAdapter() {
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("Project Properties...", encoding));
+			menuItem.setImage(Activator.getImage("project"));
+			menuItem.setEnabled(project != null);
+			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
@@ -196,10 +197,10 @@ public class EncodingLabel implements PreferenceKey {
 			if (encoding == null) {
 				encoding = "Inheritance";
 			}
-			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText(formatLabel("Package Root Properties...", encoding));
-			item.setImage(Activator.getImage("root"));
-			item.addSelectionListener(new SelectionAdapter() {
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("Package Root Properties...", encoding));
+			menuItem.setImage(Activator.getImage("root"));
+			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
@@ -212,22 +213,22 @@ public class EncodingLabel implements PreferenceKey {
 		// File Properties
 		{
 			final IFile file = doc.getFile();
-			String encoding = doc.getFilePropertiesEncoding();
-			if (encoding == null) {
+			String labelText = doc.getCurrentEncodingLabel();
+			if (doc.getFilePropertiesEncoding() == null) {
 				String currentEncoding = doc.getCurrentEncoding();
 				if (Charsets.equals(currentEncoding, doc.getContentTypeEncoding())) {
-					encoding = "Content Type";
+					labelText = "Content Type";
 				} else if (Charsets.equals(currentEncoding, doc.getContentCharset())) {
-					encoding = currentEncoding + format(" Content");
+					labelText += format(" Content");
 				} else {
-					encoding = "Inheritance";
+					labelText = "Inheritance";
 				}
 			}
-			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText(formatLabel("File Properties...", encoding));
-			item.setImage(Activator.getImage("file"));
-			item.setEnabled(file != null);
-			item.addSelectionListener(new SelectionAdapter() {
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("File Properties...", labelText));
+			menuItem.setImage(Activator.getImage("file"));
+			menuItem.setEnabled(file != null);
+			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
@@ -271,10 +272,10 @@ public class EncodingLabel implements PreferenceKey {
 					Preferences pref = InstanceScope.INSTANCE.getNode(pluginId);
 					creationEncoding = pref.get("outputCodeset", "UTF-8");
 
-					MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-					item.setText(formatLabel("File Creation Preferences...", creationEncoding));
-					item.setImage(Activator.getImage("file_new"));
-					item.addSelectionListener(new SelectionAdapter() {
+					MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+					menuItem.setText(formatLabel("File Creation Preferences...", creationEncoding));
+					menuItem.setImage(Activator.getImage("file_new"));
+					menuItem.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							PreferencesUtil.createPreferenceDialogOn(Display.getDefault().getActiveShell(),
@@ -291,11 +292,11 @@ public class EncodingLabel implements PreferenceKey {
 			if (encoding == null) {
 				encoding = "Not Set";
 			}
-			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText(formatLabel("Content Types Preferences...", encoding));
-			item.setImage(Activator.getImage("content"));
-			item.setEnabled(doc.enabledContentType());
-			item.addSelectionListener(new SelectionAdapter() {
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("Content Types Preferences...", encoding));
+			menuItem.setImage(Activator.getImage("content"));
+			menuItem.setEnabled(doc.enabledContentType());
+			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 
@@ -323,13 +324,137 @@ public class EncodingLabel implements PreferenceKey {
 		new MenuItem(popupMenu, SWT.SEPARATOR);
 	}
 
-	@SuppressWarnings("unchecked")
 	private void createSelectionMenu() {
 
 		final ActiveDocument doc = agent.getDocument();
+		final List<EncodingItem> encodingItemList = getEncodingItemList(doc);
+		boolean nonDirty = !agent.isDocumentDirty() && doc.canChangeFileEncoding();
 
-		// Do not allow changing encoding when the document is dirty.
-		boolean enabledAction = !agent.isDocumentDirty() && doc.canChangeFileEncoding();
+		// Add/Remove Bom
+		if (doc.isUTFEncoding()) {
+			if (doc.hasBOM()) {
+				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+				menuItem.setText("Remove BOM");
+				menuItem.setImage(Activator.getImage("bom_remove"));
+				menuItem.setEnabled(nonDirty);
+				menuItem.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						doc.removeBOM();
+					}
+				});
+			} else if (doc.canAddBOM()) {
+				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+				menuItem.setText("Add BOM");
+				menuItem.setImage(Activator.getImage("bom_add"));
+				menuItem.setEnabled(nonDirty && !prefIs(PREF_DISABLE_DISCOURAGED_OPERATION));
+				menuItem.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						doc.addBOM();
+					}
+				});
+			}
+		}
+
+		// Convert Charset
+		{
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.CASCADE);
+			menuItem.setText(format("Convert Charset %s to", doc.getCurrentEncoding()));
+			menuItem.setImage(Activator.getImage("charset_convert"));
+			menuItem.setEnabled(nonDirty);
+			if (prefIs(PREF_DISABLE_DISCOURAGED_OPERATION) &&
+					(doc.getDetectedCharset() == null || doc.mismatchesEncoding())) {
+				menuItem.setEnabled(false);
+			}
+			Menu convertMenu = new Menu(menuItem);
+			menuItem.setMenu(convertMenu);
+
+			for (final EncodingItem ei : encodingItemList) {
+
+				if (Charsets.equals(ei.encoding, doc.getCurrentEncoding())) {
+					continue;
+				}
+				MenuItem mItem = new MenuItem(convertMenu, SWT.NONE);
+				mItem.setText(ei.menuText);
+				mItem.setImage(Charsets.getImage(ei.encoding));
+				mItem.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						doc.convertCharset(ei.encoding);
+					}
+				});
+			}
+		}
+
+		// Change Encoding
+		{
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.CASCADE);
+			menuItem.setText("Change Encoding to");
+			menuItem.setImage(Activator.getImage("encoding_change"));
+			menuItem.setEnabled(nonDirty);
+			if (prefIs(PREF_DISABLE_DISCOURAGED_OPERATION) && doc.matchesEncoding()) {
+				menuItem.setEnabled(false);
+			}
+			Menu encodingMenu = new Menu(menuItem);
+			menuItem.setMenu(encodingMenu);
+
+			for (final EncodingItem ei : encodingItemList) {
+
+				final MenuItem mItem = new MenuItem(encodingMenu, SWT.RADIO);
+				mItem.setText(ei.menuText);
+				mItem.setImage(Charsets.getImage(ei.encoding));
+				if (Charsets.equals(ei.encoding, doc.getCurrentEncoding())) {
+					mItem.setSelection(true);
+				}
+				// Converted to one line and freeze on big file
+				else if (prefIs(PREF_DISABLE_DISCOURAGED_OPERATION) && ei.encoding.startsWith("UTF-16")) {
+					mItem.setEnabled(false);
+				}
+				mItem.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						if (mItem.getSelection()) {
+							doc.setEncoding(ei.encoding);
+						}
+					}
+				});
+			}
+		}
+
+		// Change encoding for Autodetect
+		{
+			final MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setImage(Activator.getImage("autodetect"));
+
+			if (doc.getDetectedCharset() == null) {
+				menuItem.setText("Change Encoding (Cannot Autodetect)");
+				menuItem.setEnabled(false);
+			}
+			else if (doc.matchesEncoding()) {
+				menuItem.setText("Change Encoding (Matches Autodetect)");
+				menuItem.setEnabled(false);
+			}
+			else {
+				menuItem.setText(format("Change Encoding to %s (Autodetect)", doc.getDetectedCharset()));
+				menuItem.setEnabled(nonDirty);
+				menuItem.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						for (EncodingItem i : encodingItemList) {
+							if (Charsets.equals(i.encoding, doc.getDetectedCharset())) {
+								doc.setEncoding(i.encoding);
+								break;
+							}
+						}
+					}
+				});
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<EncodingItem> getEncodingItemList(final ActiveDocument doc) {
 
 		List<String> encodingList = IDEEncoding.getIDEEncodings();
 		Charsets.add(encodingList, doc.getCurrentEncoding());
@@ -339,7 +464,6 @@ public class EncodingLabel implements PreferenceKey {
 		Charsets.add(encodingList, doc.getDetectedCharset());
 		Charsets.add(encodingList, creationEncoding);
 
-		// Create encoding menu meta data
 		final List<EncodingItem> encodingItemList = new ArrayList<EncodingItem>();
 		for (final String encoding : encodingList) {
 
@@ -363,94 +487,6 @@ public class EncodingLabel implements PreferenceKey {
 			};
 			i.menuText = formatLabel(i.encoding, noteList);
 		}
-
-		// Convert Charset
-		MenuItem charsetParentItem = new MenuItem(popupMenu, SWT.CASCADE);
-		charsetParentItem.setText(format("Convert Charset %s to", doc.getCurrentEncoding()));
-		charsetParentItem.setImage(Activator.getImage("convert_charset"));
-		charsetParentItem.setEnabled(enabledAction);
-		if (prefIs(PREF_DISABLE_UNCERTAIN_OPERATION) &&
-				(doc.getDetectedCharset() == null || doc.mismatchesEncoding())) {
-			charsetParentItem.setEnabled(false);
-		}
-		Menu convertMenu = new Menu(charsetParentItem);
-		charsetParentItem.setMenu(convertMenu);
-
-		for (final EncodingItem i : encodingItemList) {
-
-			if (Charsets.equals(i.encoding, doc.getCurrentEncoding())) {
-				continue;
-			}
-			MenuItem item = new MenuItem(convertMenu, SWT.NONE);
-			item.setText(i.menuText);
-			item.setImage(Charsets.getImage(i.encoding));
-			item.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					doc.convertCharset(i.encoding);
-				}
-			});
-		}
-
-		// Change Encoding
-		MenuItem encodingParentItem = new MenuItem(popupMenu, SWT.CASCADE);
-		encodingParentItem.setText("Change Encoding to");
-		encodingParentItem.setEnabled(enabledAction);
-		if (prefIs(PREF_DISABLE_UNCERTAIN_OPERATION) && doc.matchesEncoding()) {
-			encodingParentItem.setEnabled(false);
-		}
-		encodingParentItem.setImage(Activator.getImage("change_encoding"));
-		Menu encodingMenu = new Menu(encodingParentItem);
-		encodingParentItem.setMenu(encodingMenu);
-
-		for (final EncodingItem i : encodingItemList) {
-
-			final MenuItem item = new MenuItem(encodingMenu, SWT.RADIO);
-			item.setText(i.menuText);
-			item.setImage(Charsets.getImage(i.encoding));
-			if (Charsets.equals(i.encoding, doc.getCurrentEncoding())) {
-				item.setSelection(true);
-			}
-			// Converted to one line and freeze on big file
-			else if (prefIs(PREF_DISABLE_UNCERTAIN_OPERATION) && i.encoding.startsWith("UTF-16")) {
-				item.setEnabled(false);
-			}
-			item.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					if (item.getSelection()) {
-						doc.setEncoding(i.encoding);
-					}
-				}
-			});
-		}
-
-		// Change encoding for Autodetect
-		final MenuItem detectItem = new MenuItem(popupMenu, SWT.NONE);
-		detectItem.setImage(Activator.getImage("autodetect"));
-
-		if (doc.getDetectedCharset() == null) {
-			detectItem.setText("Change Encoding (Cannot Autodetect)");
-			detectItem.setEnabled(false);
-		}
-		else if (doc.matchesEncoding()) {
-			detectItem.setText("Change Encoding (Matches Autodetect)");
-			detectItem.setEnabled(false);
-		}
-		else {
-			detectItem.setText(format("Change Encoding to %s (Autodetect)", doc.getDetectedCharset()));
-			detectItem.setEnabled(enabledAction);
-			detectItem.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					for (EncodingItem i : encodingItemList) {
-						if (Charsets.equals(i.encoding, doc.getDetectedCharset())) {
-							doc.setEncoding(i.encoding);
-							break;
-						}
-					}
-				}
-			});
-		}
+		return encodingItemList;
 	}
 }

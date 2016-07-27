@@ -48,7 +48,7 @@ import org.mozilla.universalchardet.prober.SBCSGroupProber;
 
 /**
  * This class is copy of org.mozilla.universalchardet.UniversalDetector.
- * Modify MINIMUM_THRESHOLD to SHORTCUT_THRESHOLD
+ * See "[Kashihara]" in comment.
  * @author Shinji Kashihara
  */
 public class StrictUniversalDetector
@@ -58,7 +58,7 @@ public class StrictUniversalDetector
     ////////////////////////////////////////////////////////////////
     public static final float SHORTCUT_THRESHOLD = 0.95f;
     public static final float MINIMUM_THRESHOLD = 0.20f;
-    
+
 
     ////////////////////////////////////////////////////////////////
     // inner types
@@ -69,7 +69,7 @@ public class StrictUniversalDetector
         ESC_ASCII,
         HIGHBYTE
     }
-    
+
 
     ////////////////////////////////////////////////////////////////
     // fields
@@ -83,14 +83,14 @@ public class StrictUniversalDetector
 
     private CharsetProber[]     probers;
     private CharsetProber       escCharsetProber;
-    
+
     private CharsetListener     listener;
 
-    
+
     ////////////////////////////////////////////////////////////////
     // methods
     ////////////////////////////////////////////////////////////////
-    
+
     public StrictUniversalDetector() {
     	this(null);
     }
@@ -103,14 +103,14 @@ public class StrictUniversalDetector
         this.listener = listener;
         this.escCharsetProber = null;
         this.probers = new CharsetProber[3];
-        
+
         reset();
     }
-    
+
     public boolean isDone() {
         return this.done;
     }
-    
+
     /**
      * @return The detected encoding is returned. If the detector couldn't
      *          determine what encoding was used, null is returned.
@@ -118,11 +118,11 @@ public class StrictUniversalDetector
     public String getDetectedCharset()  {
         return this.detectedCharset;
     }
-    
+
     public void setListener(CharsetListener listener)  {
         this.listener = listener;
     }
-    
+
     public CharsetListener getListener() {
         return this.listener;
     }
@@ -144,11 +144,11 @@ public class StrictUniversalDetector
         if (this.done) {
             return;
         }
-        
+
         if (length > 0) {
             this.gotData = true;
         }
-        
+
         if (this.start) {
             this.start = false;
             if (length > 3) {
@@ -156,7 +156,7 @@ public class StrictUniversalDetector
                 int b2 = buf[offset+1] & 0xFF;
                 int b3 = buf[offset+2] & 0xFF;
                 int b4 = buf[offset+3] & 0xFF;
-                
+
                 switch (b1) {
                 case 0xEF:
                     if (b2 == 0xBB && b3 == 0xBF) {
@@ -167,7 +167,9 @@ public class StrictUniversalDetector
                     if (b2 == 0xFF && b3 == 0x00 && b4 == 0x00) {
                         this.detectedCharset = Constants.CHARSET_X_ISO_10646_UCS_4_3412;
                     } else if (b2 == 0xFF) {
-                        this.detectedCharset = Constants.CHARSET_UTF_16BE;
+                        // [Kashihara] Modify remove BE suffix when with BOM
+                      //this.detectedCharset = Constants.CHARSET_UTF_16BE;
+                        this.detectedCharset = "UTF-16";
                     }
                     break;
                 case 0x00:
@@ -181,31 +183,33 @@ public class StrictUniversalDetector
                     if (b2 == 0xFE && b3 == 0x00 && b4 == 0x00) {
                         this.detectedCharset = Constants.CHARSET_UTF_32LE;
                     } else if (b2 == 0xFE) {
-                        this.detectedCharset = Constants.CHARSET_UTF_16LE;
+                        // [Kashihara] Modify remove LE suffix when with BOM
+                      //this.detectedCharset = Constants.CHARSET_UTF_16LE;
+                        this.detectedCharset = "UTF-16";
                     }
                     break;
-                default: 
+                default:
                 	break;
                 } // swich end
-                
+
                 if (this.detectedCharset != null) {
                     this.done = true;
                     return;
                 }
             }
         } // if (start) end
-        
+
         int maxPos = offset + length;
         for (int i=offset; i<maxPos; ++i) {
             int c = buf[i] & 0xFF;
             if ((c & 0x80) != 0 && c != 0xA0) {
                 if (this.inputState != InputState.HIGHBYTE) {
                     this.inputState = InputState.HIGHBYTE;
-                    
+
                     if (this.escCharsetProber != null) {
                         this.escCharsetProber = null;
                     }
-                    
+
                     if (this.probers[0] == null) {
                         this.probers[0] = new MBCSGroupProber();
                     }
@@ -224,7 +228,7 @@ public class StrictUniversalDetector
                 this.lastChar = buf[i];
             }
         } // for end
-        
+
         CharsetProber.ProbingState st;
         if (this.inputState == InputState.ESC_ASCII) {
             if (this.escCharsetProber == null) {
@@ -256,7 +260,7 @@ public class StrictUniversalDetector
         if (!this.gotData) {
             return;
         }
-        
+
         if (this.detectedCharset != null) {
             this.done = true;
             if (this.listener != null) {
@@ -264,12 +268,12 @@ public class StrictUniversalDetector
             }
             return;
         }
-        
+
         if (this.inputState == InputState.HIGHBYTE) {
             float proberConfidence;
             float maxProberConfidence = 0.0f;
             int maxProber = 0;
-            
+
             for (int i=0; i<this.probers.length; ++i) {
                 proberConfidence = this.probers[i].getConfidence();
                 if (proberConfidence > maxProberConfidence) {
@@ -277,9 +281,11 @@ public class StrictUniversalDetector
                     maxProber = i;
                 }
             }
-            
+
+          // [Kashihara] Modify to strict detection
           //if (maxProberConfidence > MINIMUM_THRESHOLD) {
             if (maxProberConfidence > SHORTCUT_THRESHOLD) {
+
                 this.detectedCharset = this.probers[maxProber].getCharSetName();
                 if (this.listener != null) {
                     this.listener.report(this.detectedCharset);
@@ -291,7 +297,7 @@ public class StrictUniversalDetector
             // do nothing
         }
     }
-    
+
     /**
      * Resets detector to be used again.
      */
@@ -303,11 +309,11 @@ public class StrictUniversalDetector
         this.gotData = false;
         this.inputState = InputState.PURE_ASCII;
         this.lastChar = 0;
-        
+
         if (this.escCharsetProber != null) {
             this.escCharsetProber.reset();
         }
-        
+
         for (int i=0; i<this.probers.length; ++i) {
             if (this.probers[i] != null) {
                 this.probers[i].reset();

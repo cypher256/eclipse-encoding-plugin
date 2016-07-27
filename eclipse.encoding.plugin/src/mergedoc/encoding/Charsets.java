@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.swt.graphics.Image;
 
 /**
@@ -135,6 +136,27 @@ public class Charsets {
 		}
 		if (name.contains("utf")) {
 			return Activator.getImage("unicode");
+		}
+		return null;
+	}
+
+	//ktodo delete
+	public static byte[] getBOM(InputStream inputStream) throws IOException {
+		if (inputStream == null) {
+			return null;
+		}
+		int first = inputStream.read();
+		if (first == 0xEF) {
+			int second = inputStream.read();
+			int third = inputStream.read();
+			if (second == 0xBB && third == 0xBF)
+				return IContentDescription.BOM_UTF_8;
+		} else if (first == 0xFE) {
+			if (inputStream.read() == 0xFF)
+				return IContentDescription.BOM_UTF_16BE;
+		} else if (first == 0xFF) {
+			if (inputStream.read() == 0xFE)
+				return IContentDescription.BOM_UTF_16LE;
 		}
 		return null;
 	}

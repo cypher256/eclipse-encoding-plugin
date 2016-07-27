@@ -25,6 +25,7 @@ import mergedoc.encoding.EncodingPreferenceInitializer.PreferenceKey;
 import mergedoc.encoding.document.ActiveDocument;
 
 /**
+ * Line separetor label shown in the status bar.
  * @author Shinji Kashihara
  */
 public class LineSeparatorLabel implements PreferenceKey {
@@ -104,10 +105,10 @@ public class LineSeparatorLabel implements PreferenceKey {
 
 		// Workspace Preferences
 		{
-			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText(formatLabel("Workspace Preferences...", LineSeparators.ofWorkspace()));
-			item.setImage(Activator.getImage("workspace"));
-			item.addSelectionListener(new SelectionAdapter() {
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("Workspace Preferences...", LineSeparators.ofWorkspace()));
+			menuItem.setImage(Activator.getImage("workspace"));
+			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					PreferencesUtil.createPreferenceDialogOn(Display.getDefault().getActiveShell(),
@@ -126,11 +127,11 @@ public class LineSeparatorLabel implements PreferenceKey {
 					lineSeparator = "Inheritance";
 				}
 			}
-			MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-			item.setText(formatLabel("Project Properties...", lineSeparator));
-			item.setImage(Activator.getImage("project"));
-			item.setEnabled(project != null);
-			item.addSelectionListener(new SelectionAdapter() {
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("Project Properties...", lineSeparator));
+			menuItem.setImage(Activator.getImage("project"));
+			menuItem.setEnabled(project != null);
+			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
@@ -145,29 +146,26 @@ public class LineSeparatorLabel implements PreferenceKey {
 	private void createSelectionMenu() {
 
 		final ActiveDocument doc = agent.getDocument();
+		boolean nonDirty = !agent.isDocumentDirty() && doc.canConvertLineSeparator();
 
-		// Do not allow changing encoding when the document is dirty.
-		boolean enabledAction = !agent.isDocumentDirty() && doc.canConvertLineSeparator();
-
-		// Add menu items.
 		for (final SeparatorItem separatorItem : separatorItemList) {
 
-			final MenuItem item = new MenuItem(popupMenu, SWT.RADIO);
-			item.setText(separatorItem.value + " " + separatorItem.desc);
-			item.setEnabled(enabledAction);
+			final MenuItem menuItem = new MenuItem(popupMenu, SWT.RADIO);
+			menuItem.setText(separatorItem.value + " " + separatorItem.desc);
+			menuItem.setEnabled(nonDirty);
 			// Allow change if detectedEncoding is null for english only
-			if (prefIs(PREF_DISABLE_UNCERTAIN_OPERATION) && doc.mismatchesEncoding()) {
-				item.setEnabled(false);
+			if (prefIs(PREF_DISABLE_DISCOURAGED_OPERATION) && doc.mismatchesEncoding()) {
+				menuItem.setEnabled(false);
 			}
 			if (separatorItem.value.equals(doc.getLineSeparator())) {
-				item.setSelection(true);
+				menuItem.setSelection(true);
 			}
-			item.setImage(Activator.getImage(separatorItem.value));
+			menuItem.setImage(Activator.getImage(separatorItem.value));
 
-			item.addSelectionListener(new SelectionAdapter() {
+			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					if (item.getSelection()) {
+					if (menuItem.getSelection()) {
 						ActiveDocument doc = agent.getDocument();
 						doc.setLineSeparator(separatorItem.value);
 					}

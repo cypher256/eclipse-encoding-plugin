@@ -17,11 +17,11 @@ public class NullDocumentWorkspace extends NullDocument {
 
 	@Override
 	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
-		updateEncodingInfo();
+		updateEncoding();
 	}
 
 	@Override
-	protected void updateEncodingInfo() {
+	protected void updateEncoding() {
 		// Workspace preferences, not support project prefences
 		currentEncoding = ResourcesPlugin.getEncoding();
 		lineSeparator = LineSeparators.ofWorkspace();
@@ -29,8 +29,6 @@ public class NullDocumentWorkspace extends NullDocument {
 
 	@Override
 	public void propertyChanged(Object source, int propId) {
-		if (updateEncoding()) {
-			callback.encodingChanged();
-		}
+		updateEncodingChange();
 	}
 }

@@ -1,7 +1,6 @@
 package mergedoc.encoding.document;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.core.internal.resources.ResourceException;
@@ -83,9 +82,9 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void updateEncodingInfo() {
+	protected void updateEncoding() {
 
-		super.updateEncodingInfo();
+		super.updateEncoding();
 		if (packageRoot == null) {
 			packageRoot = new PackageRoot();
 		}
@@ -158,12 +157,10 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void setContentString(String content, String storeEncoding) {
+	protected void setContents(byte[] bytes) {
 		try {
-			ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes(storeEncoding));
+			ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 			file.setContents(bis, true, true, null);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}

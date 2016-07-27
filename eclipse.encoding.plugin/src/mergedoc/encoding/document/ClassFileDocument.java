@@ -45,9 +45,9 @@ public class ClassFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void updateEncodingInfo() {
+	protected void updateEncoding() {
 
-		super.updateEncodingInfo();
+		super.updateEncoding();
 		if (packageRoot == null) {
 			packageRoot = new PackageRoot();
 		}

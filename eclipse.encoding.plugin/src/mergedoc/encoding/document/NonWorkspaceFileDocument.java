@@ -65,9 +65,9 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void updateEncodingInfo() {
+	protected void updateEncoding() {
 
-		super.updateEncodingInfo();
+		super.updateEncoding();
 
 		if (fileStore != null) {
 			inheritedEncoding = ResourcesPlugin.getEncoding();
@@ -116,11 +116,11 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void setContentString(String content, String storeEncoding) {
+	protected void setContents(byte[] bytes) {
 		OutputStream os = null;
 		try {
 			os = fileStore.openOutputStream(EFS.NONE, null);
-			os.write(content.getBytes(storeEncoding));
+			os.write(bytes);
 			os.flush();
 			IDocumentProvider provider = ((AbstractTextEditor) getEditor()).getDocumentProvider();
 			((IDocumentProviderExtension) provider).synchronize(getEditor().getEditorInput());
