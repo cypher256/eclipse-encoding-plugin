@@ -343,11 +343,16 @@ public class EncodingLabel implements PreferenceKey {
 						doc.removeBOM();
 					}
 				});
-			} else if (doc.canAddBOM()) {
+			} else {
 				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
 				menuItem.setText("Add BOM");
 				menuItem.setImage(Activator.getImage("bom_add"));
-				menuItem.setEnabled(nonDirty && !prefIs(PREF_DISABLE_DISCOURAGED_OPERATION));
+				menuItem.setEnabled(nonDirty);
+				if (prefIs(PREF_DISABLE_DISCOURAGED_OPERATION) &&
+						// UTF-8 BOM is discouraged
+						("UTF-8".equals(doc.getCurrentEncoding()) || doc.mismatchesEncoding())) {
+					menuItem.setEnabled(false);
+				}
 				menuItem.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
@@ -414,9 +419,7 @@ public class EncodingLabel implements PreferenceKey {
 				mItem.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						if (mItem.getSelection()) {
-							doc.setEncoding(ei.encoding);
-						}
+						doc.setEncoding(ei.encoding);
 					}
 				});
 			}
@@ -441,12 +444,7 @@ public class EncodingLabel implements PreferenceKey {
 				menuItem.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						for (EncodingItem i : encodingItemList) {
-							if (Charsets.equals(i.encoding, doc.getDetectedCharset())) {
-								doc.setEncoding(i.encoding);
-								break;
-							}
-						}
+						doc.setEncoding(doc.getDetectedCharset());
 					}
 				});
 			}

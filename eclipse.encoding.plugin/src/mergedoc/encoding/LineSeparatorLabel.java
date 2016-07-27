@@ -165,10 +165,7 @@ public class LineSeparatorLabel implements PreferenceKey {
 			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					if (menuItem.getSelection()) {
-						ActiveDocument doc = agent.getDocument();
-						doc.setLineSeparator(separatorItem.value);
-					}
+					doc.setLineSeparator(separatorItem.value);
 				}
 			});
 		}

@@ -126,13 +126,11 @@ public class ActiveDocument {
 		return sb.toString();
 	}
 	public boolean canOperateBOM() {
-		return currentEncoding != null && currentEncoding.startsWith("UTF-");
+		// Not support UTF-32 as in the Eclipse
+		return currentEncoding != null && currentEncoding.matches("UTF-(8|16|16BE|16LE)");
 	}
 	public boolean hasBOM() {
 		return canOperateBOM() && bom != null;
-	}
-	public boolean canAddBOM() {
-		return currentEncoding != null && currentEncoding.matches("UTF-(8|16|16BE|16LE)");
 	}
 
 	public String getInheritedEncoding() {
@@ -195,6 +193,8 @@ public class ActiveDocument {
 			// Ignore BackingStoreException for not sync project preferences store
 			Activator.info("Failed set encoding", e);
 		}
+		warnMessage(null);
+
 		flush();
 	}
 
@@ -297,11 +297,11 @@ public class ActiveDocument {
 					} else if (currentEncoding.equals("UTF-16LE")) {
 						newBytes = ArrayUtils.addAll(BOM_UTF_16LE, bytes);
 					} else {
-						// Unsupport UTF-32
+						// Not support UTF-32 as in the Eclipse
 						throw new IllegalStateException("Encoding must be UTF-8 or UTF-16.");
 					}
 					setContents(newBytes);
-					setEncoding(null); // detemined from BOM content
+					setEncoding(null); // Detemined from BOM content
 				}
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
@@ -329,7 +329,7 @@ public class ActiveDocument {
 					setEncoding("UTF-16LE");
 				}
 			}
-			// Unsupport UTF-32
+			// Not support UTF-32 as in the Eclipse
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {
