@@ -21,6 +21,11 @@ public class NullDocumentWorkspace extends NullDocument {
 	}
 
 	@Override
+	public boolean canOperateBOM() {
+		return false;
+	}
+
+	@Override
 	protected void updateStatus() {
 		// Workspace preferences, not support project prefences
 		currentEncoding = ResourcesPlugin.getEncoding();

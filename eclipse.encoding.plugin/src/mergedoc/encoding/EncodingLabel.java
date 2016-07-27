@@ -331,7 +331,7 @@ public class EncodingLabel implements PreferenceKey {
 		boolean nonDirty = !agent.isDocumentDirty() && doc.canChangeFileEncoding();
 
 		// Add/Remove Bom
-		if (doc.isUTFEncoding()) {
+		if (doc.canOperateBOM()) {
 			if (doc.hasBOM()) {
 				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
 				menuItem.setText("Remove BOM");

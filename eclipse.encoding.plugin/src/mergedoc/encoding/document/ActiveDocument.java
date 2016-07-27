@@ -113,7 +113,7 @@ public class ActiveDocument {
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append(currentEncoding);
-		if (isUTFEncoding()) {
+		if (canOperateBOM()) {
 			if (bom != null) {
 				if (bom == BOM_UTF_16BE) {
 					sb.append(" BE");
@@ -125,11 +125,11 @@ public class ActiveDocument {
 		}
 		return sb.toString();
 	}
-	public boolean isUTFEncoding() {
+	public boolean canOperateBOM() {
 		return currentEncoding != null && currentEncoding.startsWith("UTF-");
 	}
 	public boolean hasBOM() {
-		return isUTFEncoding() && bom != null;
+		return canOperateBOM() && bom != null;
 	}
 	public boolean canAddBOM() {
 		return currentEncoding != null && currentEncoding.matches("UTF-(8|16|16BE|16LE)");
