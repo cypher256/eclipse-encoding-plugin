@@ -16,6 +16,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 
+import mergedoc.encoding.Activator;
 import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
 import mergedoc.encoding.LineSeparators;
@@ -82,9 +83,10 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void updateEncoding() {
+	protected void updateStatus() {
 
-		super.updateEncoding();
+		super.updateStatus();
+
 		if (packageRoot == null) {
 			packageRoot = new PackageRoot();
 		}
@@ -149,10 +151,16 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	protected InputStream getInputStream() {
 		try {
 			return file.getContents(true);
-		} catch (ResourceException e) {
-			return null; // Out of sync, etc...
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
+		}
+		// Out of sync, etc...
+		catch (ResourceException e) {
+			Activator.warn(e.getMessage());
+			return null;
+		}
+		// File not found, etc...
+		catch (CoreException e) {
+			Activator.warn(e.getMessage());
+			return null;
 		}
 	}
 

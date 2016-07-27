@@ -27,7 +27,7 @@ public class ClassFileDocument extends ActiveDocument {
 	public ClassFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
 	}
-	
+
 	@Override
 	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		IEditorInput editorInput = editor.getEditorInput();
@@ -45,9 +45,10 @@ public class ClassFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void updateEncoding() {
+	protected void updateStatus() {
 
-		super.updateEncoding();
+		super.updateStatus();
+
 		if (packageRoot == null) {
 			packageRoot = new PackageRoot();
 		}
@@ -72,11 +73,11 @@ public class ClassFileDocument extends ActiveDocument {
 					packageRoot.encoding = currentEncoding;
 				}
 			}
-			
+
 		} catch (InvocationTargetException e) {
 			// Non class path entry getRawClasspathEntry
 			Activator.info(e.getCause().getMessage() + " " + getClass().getSimpleName());
-			
+
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}

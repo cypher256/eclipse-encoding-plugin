@@ -30,11 +30,11 @@ public class StorageFileDocument extends ActiveDocument {
 	public StorageFileDocument(IEditorPart part, IActiveDocumentAgentCallback callback) {
 		super(part, callback);
 	}
-	
+
 	public boolean hasContent() {
 		return storage != null;
 	}
-	
+
 	@Override
 	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		if (!(editor.getEditorInput() instanceof IStorageEditorInput)) {
@@ -81,9 +81,9 @@ public class StorageFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	protected void updateEncoding() {
+	protected void updateStatus() {
 
-		super.updateEncoding();
+		super.updateStatus();
 
 		detectedCharset = Charsets.detect(getInputStream());
 		IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());

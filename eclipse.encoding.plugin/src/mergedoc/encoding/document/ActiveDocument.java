@@ -1,6 +1,7 @@
 package mergedoc.encoding.document;
 
 import static java.lang.String.*;
+import static org.eclipse.core.runtime.content.IContentDescription.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +38,6 @@ public class ActiveDocument {
 
 	protected IActiveDocumentAgentCallback callback;
 	protected IEditorPart editor;
-	protected String lineSeparator;
 	protected IEncodingSupport encodingSupport;
 
 	protected String currentEncoding;
@@ -45,6 +45,8 @@ public class ActiveDocument {
 	protected String detectedCharset;
 	protected String contentTypeEncoding;
 	protected String contentCharset;
+	protected byte[] bom;
+	protected String lineSeparator;
 
 	public ActiveDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		init(editor, callback);
@@ -61,7 +63,7 @@ public class ActiveDocument {
 		this.encodingSupport = editor.getAdapter(IEncodingSupport.class);
 		if (encodingSupport == null) throw new IllegalArgumentException("editor must provide IEncodingSupport.");
 
-		updateEncoding();
+		updateStatus();
 	}
 
 	/**
@@ -85,10 +87,6 @@ public class ActiveDocument {
 	}
 	public IContentDescription getContentDescription() {
 		return null;
-	}
-	public byte[] getContentDescriptionBOM() {
-		IContentDescription cd = getContentDescription();
-		return (byte[]) (cd == null ? null : cd.getProperty(IContentDescription.BYTE_ORDER_MARK));
 	}
 
 	/**
@@ -116,11 +114,10 @@ public class ActiveDocument {
 		StringBuilder sb = new StringBuilder();
 		sb.append(currentEncoding);
 		if (isUTFEncoding()) {
-			byte[] bom = getContentDescriptionBOM();
 			if (bom != null) {
-				if (bom == IContentDescription.BOM_UTF_16BE) {
+				if (bom == BOM_UTF_16BE) {
 					sb.append(" BE");
-				} else if (bom == IContentDescription.BOM_UTF_16LE) {
+				} else if (bom == BOM_UTF_16LE) {
 					sb.append(" LE");
 				}
 				sb.append(" BOM");
@@ -132,7 +129,7 @@ public class ActiveDocument {
 		return currentEncoding != null && currentEncoding.startsWith("UTF-");
 	}
 	public boolean hasBOM() {
-		return isUTFEncoding() && getContentDescriptionBOM() != null;
+		return isUTFEncoding() && bom != null;
 	}
 	public boolean canAddBOM() {
 		return currentEncoding != null && currentEncoding.matches("UTF-(8|16|16BE|16LE)");
@@ -162,7 +159,7 @@ public class ActiveDocument {
 		// It seems that the editor's encoding will not change when it is dirty
 		if (!editor.isDirty()) {
 			// The document may be just saved.
-			updateEncodingChange();
+			flush();
 		}
 	}
 
@@ -198,26 +195,28 @@ public class ActiveDocument {
 			// Ignore BackingStoreException for not sync project preferences store
 			Activator.info("Failed set encoding", e);
 		}
-		updateEncodingChange();
+		flush();
 	}
 
-	protected final void updateEncodingChange() {
+	protected final void flush() {
 
 		String currentEncodingOld = currentEncoding;
 		String detectedCharsetOld = detectedCharset;
 		String contentCharsetOld = contentCharset;
+		byte[] bomOLD = bom;
 		String lineSeparatorOld = lineSeparator;
 
-		updateEncoding();
+		updateStatus();
 
 		if (
 			!StringUtils.equals(currentEncodingOld, currentEncoding) ||
 			!StringUtils.equals(detectedCharsetOld, detectedCharset) ||
 			!StringUtils.equals(contentCharsetOld, contentCharset) ||
+			bomOLD != bom ||
 			!StringUtils.equals(lineSeparatorOld, lineSeparator)
 		) {
 			// Invoke the callback if the encoding information is changed
-			callback.encodingChanged();
+			callback.statusChanged();
 		}
 	}
 
@@ -225,12 +224,13 @@ public class ActiveDocument {
 	 * Update the encoding information in member variables.
 	 * This method may be overrided, but should be called by the sub-class.
 	 */
-	protected void updateEncoding() {
+	protected void updateStatus() {
 
 		currentEncoding = null;
 		inheritedEncoding = null;
 		detectedCharset = null;
 		contentTypeEncoding = null;
+		bom = null;
 		lineSeparator = null;
 
 		if (encodingSupport != null) {
@@ -239,6 +239,7 @@ public class ActiveDocument {
 				// workspace encoding
 				currentEncoding = encodingSupport.getDefaultEncoding();
 			}
+			bom = resolveBOM();
 		}
 	}
 
@@ -277,6 +278,11 @@ public class ActiveDocument {
 		}
 	}
 
+	protected byte[] resolveBOM() {
+		IContentDescription cd = getContentDescription();
+		return (byte[]) (cd == null ? null : cd.getProperty(BYTE_ORDER_MARK));
+	}
+
 	public void addBOM() {
 		if (!hasBOM() && currentEncoding != null) {
 			InputStream inputStream = getInputStream();
@@ -285,11 +291,11 @@ public class ActiveDocument {
 					byte[] bytes = IOUtils.toByteArray(getInputStream());
 					byte[] newBytes = null;
 					if (currentEncoding.equals("UTF-8")) {
-						newBytes = ArrayUtils.addAll(IContentDescription.BOM_UTF_8, bytes);
+						newBytes = ArrayUtils.addAll(BOM_UTF_8, bytes);
 					} else if (currentEncoding.matches("UTF-16(|BE)")) {
-						newBytes = ArrayUtils.addAll(IContentDescription.BOM_UTF_16BE, bytes);
+						newBytes = ArrayUtils.addAll(BOM_UTF_16BE, bytes);
 					} else if (currentEncoding.equals("UTF-16LE")) {
-						newBytes = ArrayUtils.addAll(IContentDescription.BOM_UTF_16LE, bytes);
+						newBytes = ArrayUtils.addAll(BOM_UTF_16LE, bytes);
 					} else {
 						// Unsupport UTF-32
 						throw new IllegalStateException("Encoding must be UTF-8 or UTF-16.");
@@ -309,17 +315,17 @@ public class ActiveDocument {
 		InputStream inputStream = getInputStream();
 		try {
 			byte[] bytes = IOUtils.toByteArray(getInputStream());
-			byte[] head3 = ArrayUtils.subarray(bytes, 0, 3);
-			if (Arrays.equals(head3, IContentDescription.BOM_UTF_8)) {
-				setContents(ArrayUtils.subarray(bytes, 3, Integer.MAX_VALUE));
+			byte[] head3 = ArrayUtils.subarray(bytes, 0, BOM_UTF_8.length);
+			if (Arrays.equals(head3, BOM_UTF_8)) {
+				setContents(ArrayUtils.subarray(bytes, BOM_UTF_8.length, Integer.MAX_VALUE));
 				setEncoding("UTF-8"); // null if default
 			} else {
-				byte[] head2 = ArrayUtils.subarray(bytes, 0, 2);
-				if (Arrays.equals(head2, IContentDescription.BOM_UTF_16BE)) {
-					setContents(ArrayUtils.subarray(bytes, 2, Integer.MAX_VALUE));
+				byte[] head2 = ArrayUtils.subarray(bytes, 0, BOM_UTF_16BE.length);
+				if (Arrays.equals(head2, BOM_UTF_16BE)) {
+					setContents(ArrayUtils.subarray(bytes, BOM_UTF_16BE.length, Integer.MAX_VALUE));
 					setEncoding("UTF-16BE");
-				} else if (Arrays.equals(head2, IContentDescription.BOM_UTF_16LE)) {
-					setContents(ArrayUtils.subarray(bytes, 2, Integer.MAX_VALUE));
+				} else if (Arrays.equals(head2, BOM_UTF_16LE)) {
+					setContents(ArrayUtils.subarray(bytes, BOM_UTF_16BE.length, Integer.MAX_VALUE));
 					setEncoding("UTF-16LE");
 				}
 			}
@@ -348,6 +354,7 @@ public class ActiveDocument {
 		}
 		String content = getContentString().replaceAll("(\\r\\n|\\r|\\n)", newSeparator);
 		setContents(content, getCurrentEncoding());
+		flush();
 	}
 
 	public void infoMessage(String message, Object... args) {

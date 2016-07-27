@@ -3,6 +3,7 @@ package mergedoc.encoding.document;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.filesystem.EFS;
@@ -17,8 +18,8 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.eclipse.ui.texteditor.IDocumentProviderExtension;
 
+import mergedoc.encoding.Activator;
 import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
 import mergedoc.encoding.LineSeparators;
@@ -60,45 +61,95 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 		return null;
 	}
 
+	@Override
+	protected byte[] resolveBOM() {
+		InputStream inputStream = getInputStream();
+		if (inputStream == null) {
+			return null;
+		}
+		try {
+			int first = inputStream.read();
+			if (first == 0xEF) {
+				int second = inputStream.read();
+				int third = inputStream.read();
+				if (second == 0xBB && third == 0xBF)
+					return IContentDescription.BOM_UTF_8;
+			} else if (first == 0xFE) {
+				if (inputStream.read() == 0xFF)
+					return IContentDescription.BOM_UTF_16BE;
+			} else if (first == 0xFF) {
+				if (inputStream.read() == 0xFE)
+					return IContentDescription.BOM_UTF_16LE;
+			}
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		} finally {
+			IOUtils.closeQuietly(inputStream);
+		}
+		return null;
+	}
+
 	public IContentType getContentType() {
 		return Platform.getContentTypeManager().findContentTypeFor(getFileName());
 	}
 
 	@Override
-	protected void updateEncoding() {
+	protected void updateStatus() {
 
-		super.updateEncoding();
+		super.updateStatus();
 
-		if (fileStore != null) {
-			inheritedEncoding = ResourcesPlugin.getEncoding();
-			detectedCharset = Charsets.detect(getInputStream());
+		inheritedEncoding = ResourcesPlugin.getEncoding();
+		detectedCharset = Charsets.detect(getInputStream());
 
-			IContentType contentType = getContentType();
-			if (contentType != null) {
-				contentTypeEncoding = contentType.getDefaultCharset();
+		IContentType contentType = getContentType();
+		if (contentType != null) {
+			contentTypeEncoding = contentType.getDefaultCharset();
 
-				InputStream inputStream = getInputStream();
-				try {
-					IContentDescription description = contentType.getDescriptionFor(
-						inputStream, new QualifiedName[]{IContentDescription.CHARSET});
-					if (description != null) {
-						contentCharset = description.getCharset();
-						if (contentCharset != null) {
-							currentEncoding = contentCharset;
-						}
+			InputStream inputStream = getInputStream();
+			try {
+				IContentDescription description = contentType.getDescriptionFor(
+					inputStream, new QualifiedName[]{IContentDescription.CHARSET});
+				if (description != null) {
+					contentCharset = description.getCharset();
+					if (contentCharset != null) {
+						currentEncoding = contentCharset;
 					}
-				} catch (IOException e) {
-					throw new IllegalStateException(e);
-				} finally {
-					IOUtils.closeQuietly(inputStream);
 				}
+			} catch (IOException e) {
+				throw new IllegalStateException(e);
+			} finally {
+				IOUtils.closeQuietly(inputStream);
 			}
-			lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
+		}
+		lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
+
+		// Sync file and editor using refrection. The synchronize method not working UTF-8.
+		/*
+		IDocumentProvider provider = ((ITextEditor) editor).getDocumentProvider();
+		((IDocumentProviderExtension) provider).synchronize(editor.getEditorInput());
+		*/
+		if (editor instanceof AbstractTextEditor) {
+			try {
+				AbstractTextEditor textEditor = (AbstractTextEditor) editor;
+				IDocumentProvider provider = textEditor.getDocumentProvider();
+				long providerStamp = provider.getModificationStamp(textEditor.getEditorInput());
+
+				Field editorStampField = AbstractTextEditor.class.getDeclaredField("fModificationStamp");
+				editorStampField.setAccessible(true);
+				editorStampField.set(textEditor, providerStamp);
+
+			} catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
 		}
 	}
 
 	@Override
 	public boolean canChangeFileEncoding() {
+		return true;
+	}
+	@Override
+	public boolean canConvertLineSeparator() {
 		return true;
 	}
 	@Override
@@ -110,8 +161,11 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 	protected InputStream getInputStream() {
 		try {
 			return fileStore.openInputStream(EFS.NONE, null);
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
+		}
+		// File not found, etc...
+		catch (CoreException e) {
+			Activator.warn(e.getMessage());
+			return null;
 		}
 	}
 
@@ -121,12 +175,8 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 		try {
 			os = fileStore.openOutputStream(EFS.NONE, null);
 			os.write(bytes);
-			os.flush();
-			IDocumentProvider provider = ((AbstractTextEditor) getEditor()).getDocumentProvider();
-			((IDocumentProviderExtension) provider).synchronize(getEditor().getEditorInput());
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		} catch (CoreException e) {
+			os.flush(); // Sync file and editor in updateEncoding
+		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		} finally {
 			IOUtils.closeQuietly(os);

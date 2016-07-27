@@ -115,7 +115,7 @@ public class EncodingControlContribution extends
 	 * Like after the user switches to another editor.
 	 */
 	@Override
-	public void encodingChanged() {
+	public void statusChanged() {
 
 		// Cannot make resize work, need to call createControl() again.
 		// Do update in the UI thread.

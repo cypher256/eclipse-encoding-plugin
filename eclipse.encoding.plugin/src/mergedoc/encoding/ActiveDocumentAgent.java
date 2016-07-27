@@ -196,7 +196,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 		if (activeEditor != currentDocument.getEditor()) {
 			// Get a new handler for the active editor, and invoke the callback.
 			setCurrentDocument(getDocument(activeEditor));
-			callback.encodingChanged();
+			callback.statusChanged();
 		}
 	}
 
@@ -206,7 +206,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 			// The current handler may not be able to handle the new editor input,
 			// so get a new handler for the active editor, and invoke the callback.
 			setCurrentDocument(getDocument(getActiveEditor()));
-			callback.encodingChanged();
+			callback.statusChanged();
 		}
 		else {
 			// Pass the event to the handler.
@@ -249,10 +249,10 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	public void pageChanged(PageChangedEvent event) {
 		// MultiPageEditorPart tab changed
 		setCurrentDocument(getDocument(getActiveEditor()));
-		callback.encodingChanged();
+		callback.statusChanged();
 	}
 
 	public void fireEncodingChanged() {
-		callback.encodingChanged();
+		callback.statusChanged();
 	}
 }
