@@ -2,7 +2,7 @@ package mergedoc.encoding.document;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
@@ -69,11 +69,10 @@ public class StorageFileDocument extends ActiveDocument {
 				}
 				@Override
 				public InputStream getContents() {
-					try {
-						return new ByteArrayInputStream("\n".getBytes(currentEncoding));
-					} catch (UnsupportedEncodingException e) {
+					if (currentEncoding == null) {
 						return null;
 					}
+					return new ByteArrayInputStream("\n".getBytes(Charset.forName(currentEncoding)));
 				}
 			};
 		}

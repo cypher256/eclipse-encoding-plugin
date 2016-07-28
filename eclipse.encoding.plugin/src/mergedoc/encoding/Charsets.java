@@ -56,14 +56,7 @@ public class Charsets {
 				}
 				detector.dataEnd();
 				String charset = detector.getDetectedCharset();
-				if (charset != null) {
-					charset = Charset.forName(charset).name();
-					String windowsEncoding = windowsCharsetMap.get(charset.toLowerCase());
-					if (windowsEncoding != null) {
-						charset = windowsEncoding;
-					}
-				}
-				return charset;
+				return toCanonicalName(charset);
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			} finally {
@@ -71,6 +64,23 @@ public class Charsets {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Convert charset to canonical name for this Plugin.
+	 * e.g. Windows-31J => MS932
+	 * @return java.io canonical name
+	 */
+	public static String toCanonicalName(String charset) {
+		if (charset == null) {
+			return null;
+		}
+		String canonicalName = Charset.forName(charset).name();
+		String windowsCharset = windowsCharsetMap.get(canonicalName.toLowerCase());
+		if (windowsCharset != null) {
+			canonicalName = windowsCharset;
+		}
+		return canonicalName;
 	}
 
 	/**
@@ -96,6 +106,7 @@ public class Charsets {
 	}};
 
 	public static Image getImage(String charset) {
+		// java.nio canonical name lowercase
 		String name = Charset.forName(charset).name().toLowerCase();
 		if (name.equals("windows-31j") || name.contains("jp") || name.contains("jis")) {
 			return Activator.getImage("japan");

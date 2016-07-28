@@ -5,7 +5,7 @@ import static org.eclipse.core.runtime.content.IContentDescription.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
@@ -271,11 +271,7 @@ public class ActiveDocument {
 		throw new UnsupportedOperationException("Non implements setContents method.");
 	}
 	protected void setContents(String content, String storeEncoding) {
-		try {
-			setContents(content.getBytes(storeEncoding));
-		} catch (UnsupportedEncodingException e) {
-			throw new IllegalStateException(e);
-		}
+		setContents(content.getBytes(Charset.forName(storeEncoding)));
 	}
 
 	protected byte[] resolveBOM() {
