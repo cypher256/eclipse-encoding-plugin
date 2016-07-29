@@ -138,7 +138,7 @@ public class EncodingLabel implements PreferenceKey {
 				agent.fireEncodingChanged();
 				if (sel && prefKey.equals(PREF_AUTODETECT_CHANGE)) {
 					ActiveDocument doc = agent.getDocument();
-					doc.infoMessage("'Set automatically' only applies when the file properties encoding is not set.");
+					doc.infoMessage("'Set automatically' only applies if the file properties encoding is not set.");
 				}
 			}
 		});

@@ -31,7 +31,7 @@ Inheritance: Inherited from folder or project properties, workspace preferences
 Content Type: Determined from content type setting  
 
 'Autodetect: Set Automatically'  
-This only applies when the file properties encoding is not specified.
+This only applies if the file properties encoding is not specified.
 
 ## License
 [Eclipse Public License - v 1.0](https://www.eclipse.org/legal/epl-v10.html)  
