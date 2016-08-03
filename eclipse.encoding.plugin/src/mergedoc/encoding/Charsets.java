@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.graphics.Image;
 
 /**
@@ -56,7 +57,12 @@ public class Charsets {
 				}
 				detector.dataEnd();
 				String charset = detector.getDetectedCharset();
-				return toCanonicalName(charset);
+				String msName = toMicrosoftName(charset);
+				// Change to extended charset for Japanese
+				if (StringUtils.equalsIgnoreCase(msName, "shift_jis")) {
+					msName = "MS932";
+				}
+				return msName;
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			} finally {
@@ -65,31 +71,13 @@ public class Charsets {
 		}
 		return null;
 	}
-	
-	/**
-	 * Convert charset to canonical name for this Plugin.
-	 * e.g. Windows-31J => MS932
-	 * @return java.io canonical name
-	 */
-	public static String toCanonicalName(String charset) {
-		if (charset == null) {
-			return null;
-		}
-		String canonicalName = Charset.forName(charset).name();
-		String windowsCharset = windowsCharsetMap.get(canonicalName.toLowerCase());
-		if (windowsCharset != null) {
-			canonicalName = windowsCharset;
-		}
-		return canonicalName;
-	}
 
 	/**
-	 * Windows default charset mappings.
+	 * Microsoft default charset mappings.
 	 * key  : java.nio canonical name (java.nio.charset.Charset#name lower case)
-	 * value: java.io  canonical name (Windows Java default encoding name)
+	 * value: java.io  canonical name (Microsoft Java default encoding name)
 	 */
-	private static final Map<String, String> windowsCharsetMap = new HashMap<String, String>() {{
-		put("shift_jis", "MS932");
+	private static final Map<String, String> msCharsetMap = new HashMap<String, String>() {{
 		put("windows-31j", "MS932");
 		put("windows-1250", "Cp1250");
 		put("windows-1251", "Cp1251");
@@ -104,6 +92,41 @@ public class Charsets {
 		put("x-windows-949", "MS949");
 		put("x-windows-950", "MS950");
 	}};
+
+	/**
+	 * Convert charset to microsoft name.
+	 * e.g. Windows-31J => MS932
+	 * @return java.io canonical name
+	 */
+	private static String toMicrosoftName(String charset) {
+		if (charset == null) {
+			return null;
+		}
+		String canonicalName = Charset.forName(charset).name();
+		String windowsCharset = msCharsetMap.get(canonicalName.toLowerCase());
+		if (windowsCharset != null) {
+			canonicalName = windowsCharset;
+		}
+		return canonicalName;
+	}
+
+	/**
+	 * Convert charset to IANA preferred name.
+	 * e.g. BIG5 => Big5
+	 * e.g. windows-31j => Windows-31J
+	 * @return IANA  preferred name
+	 */
+	public static String toIANAName(String charset) {
+		if (charset == null) {
+			return null;
+		}
+		// convert to java.nio canonical name
+		String ianaName = Charset.forName(charset).name();
+		if (ianaName.equalsIgnoreCase("windows-31j")) {
+			ianaName = "Windows-31J";
+		}
+		return ianaName;
+	}
 
 	public static Image getImage(String charset) {
 		// java.nio canonical name lowercase
@@ -157,7 +180,7 @@ public class Charsets {
 					return;
 				}
 			}
-			charsetList.add(charset);
+			charsetList.add(toMicrosoftName(charset));
 			Collections.sort(charsetList);
 		}
 	}

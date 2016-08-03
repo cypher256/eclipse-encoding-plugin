@@ -270,7 +270,7 @@ public class EncodingLabel implements PreferenceKey {
 					}};
 					String pluginId = creationEncodingMap.get(preferencePageId.replaceAll(".*\\.", ""));
 					Preferences pref = InstanceScope.INSTANCE.getNode(pluginId);
-					creationEncoding = Charsets.toCanonicalName(pref.get("outputCodeset", "UTF-8"));
+					creationEncoding = Charsets.toIANAName(pref.get("outputCodeset", "UTF-8"));
 
 					MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
 					menuItem.setText(formatLabel("File Creation Preferences...", creationEncoding));
