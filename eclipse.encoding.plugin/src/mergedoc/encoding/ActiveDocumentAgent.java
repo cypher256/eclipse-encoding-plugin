@@ -19,6 +19,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import mergedoc.encoding.document.ActiveDocument;
 import mergedoc.encoding.document.ClassFileDocument;
+import mergedoc.encoding.document.DecompilerClassFileDocument;
 import mergedoc.encoding.document.NonWorkspaceFileDocument;
 import mergedoc.encoding.document.NullDocument;
 import mergedoc.encoding.document.NullDocumentWorkspace;
@@ -105,6 +106,10 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 				return new WorkspaceFileDocument(editor, callback);
 			}
 			else if (editorInput instanceof FileStoreEditorInput) {
+				// org.sf.feeling.decompiler.editor.DecompilerClassEditorInput
+				if (editorInput.getClass().getSimpleName().equals("DecompilerClassEditorInput")) {
+					return new DecompilerClassFileDocument(editor, callback);
+				}
 				return new NonWorkspaceFileDocument(editor, callback);
 			}
 			else if (editorInput instanceof IStorageEditorInput) {

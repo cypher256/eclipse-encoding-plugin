@@ -26,7 +26,7 @@ import org.eclipse.ui.internal.WorkbenchWindow;
 import mergedoc.encoding.Activator;
 import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
-import mergedoc.encoding.PackageRoot;
+import mergedoc.encoding.JarResource;
 
 /**
  * This document handles editors which support IEncodingSupport for ActiveDocumentAgent.
@@ -76,7 +76,7 @@ public class ActiveDocument {
 	public IProject getProject() {
 		return null;
 	}
-	public PackageRoot getPackageRoot() {
+	public JarResource getJarResource() {
 		return null;
 	}
 	public IFile getFile() {
@@ -243,10 +243,10 @@ public class ActiveDocument {
 		}
 	}
 
-	public boolean canChangeFileEncoding() {
+	public boolean canChangeEncoding() {
 		return false;
 	}
-	public boolean canConvertLineSeparator() {
+	public boolean canConvertContent() {
 		return false;
 	}
 	public boolean enabledContentType() {

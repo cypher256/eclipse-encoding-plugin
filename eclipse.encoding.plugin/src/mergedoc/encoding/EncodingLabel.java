@@ -10,10 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -83,7 +83,7 @@ public class EncodingLabel implements PreferenceKey {
 			label.setImage(Activator.getImage("warn"));
 		} else {
 			label.setImage(null);
-			if (doc.canChangeFileEncoding()) {
+			if (doc.canChangeEncoding()) {
 				label.setToolTipText(format("Right-click to change the encoding of '%s'", doc.getFileName()));
 			} else {
 				label.setToolTipText(null);
@@ -103,7 +103,7 @@ public class EncodingLabel implements PreferenceKey {
 			public void menuShown(MenuEvent e) {
 
 				final ActiveDocument doc = agent.getDocument();
-				doc.warnDirtyMessage(agent.isDocumentDirty() && doc.canChangeFileEncoding());
+				doc.warnDirtyMessage(agent.isDocumentDirty() && doc.canChangeEncoding());
 
 				// Remove existing menu items.
 				for (MenuItem item: popupMenu.getItems()) item.dispose();
@@ -167,11 +167,7 @@ public class EncodingLabel implements PreferenceKey {
 			final IProject project = doc.getProject();
 			String encoding = null;
 			if (project != null) {
-				try {
-					encoding = project.getDefaultCharset(false);
-				} catch (CoreException e) {
-					throw new IllegalStateException(e);
-				}
+				encoding = ResourceProperties.getEncoding(project);
 				if (encoding == null) {
 					encoding = "Inheritance";
 				}
@@ -190,29 +186,60 @@ public class EncodingLabel implements PreferenceKey {
 			});
 		}
 
-		// src/jar Package Root Properties
-		final PackageRoot packageRoot = doc.getPackageRoot();
-		if (packageRoot != null && packageRoot.element != null) {
-			String encoding = packageRoot.encoding;
-			if (encoding == null) {
-				encoding = "Inheritance";
-			}
-			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
-			menuItem.setText(formatLabel("Package Root Properties...", encoding));
-			menuItem.setImage(Activator.getImage("root"));
-			menuItem.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
-						packageRoot.element,
-						"org.eclipse.jdt.ui.propertyPages.SourceAttachmentPage", null, null).open();
+		// JAR File Properties
+		final IFile file = doc.getFile();
+		if (file == null) {
+			final JarResource jar = doc.getJarResource();
+			if (jar != null && jar.element != null) {
+				String encoding = jar.encoding;
+				if (encoding == null) {
+					encoding = "Inheritance";
 				}
-			});
+				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+				menuItem.setText(formatLabel("JAR File Properties...", encoding));
+				menuItem.setImage(Activator.getImage("root"));
+				menuItem.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
+							jar.element,
+							"org.eclipse.jdt.ui.propertyPages.SourceAttachmentPage", null, null).open();
+					}
+				});
+			}
+		}
+
+		// Folder Properties
+		else {
+			List<IContainer> folders = new ArrayList<IContainer>();
+			for (
+					IContainer folder = file.getParent();
+					folder != null && (folder instanceof IProject) == false;
+					folder = folder.getParent()
+			) {
+				folders.add(0, folder);
+			}
+			for (final IContainer folder : folders) {
+
+				String encoding = ResourceProperties.getEncoding(folder);
+				if (encoding != null) {
+					MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+					menuItem.setText(formatLabel(format("%s Folder Properties...", folder.getName()), encoding));
+					menuItem.setImage(Activator.getImage("folder"));
+					menuItem.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
+								folder,
+								"org.eclipse.ui.propertypages.info.file", null, null).open();
+						}
+					});
+				}
+			}
 		}
 
 		// File Properties
 		{
-			final IFile file = doc.getFile();
 			String labelText = doc.getCurrentEncodingLabel();
 			if (doc.getFilePropertiesEncoding() == null) {
 				String currentEncoding = doc.getCurrentEncoding();
@@ -222,6 +249,7 @@ public class EncodingLabel implements PreferenceKey {
 					labelText += format(" Content");
 				} else {
 					labelText = "Inheritance";
+
 				}
 			}
 			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
@@ -328,7 +356,7 @@ public class EncodingLabel implements PreferenceKey {
 
 		final ActiveDocument doc = agent.getDocument();
 		final List<EncodingItem> encodingItemList = getEncodingItemList(doc);
-		boolean nonDirty = !agent.isDocumentDirty() && doc.canChangeFileEncoding();
+		boolean nonDirty = !agent.isDocumentDirty() && doc.canChangeEncoding();
 
 		// Add/Remove Bom
 		if (doc.canOperateBOM()) {
@@ -367,7 +395,7 @@ public class EncodingLabel implements PreferenceKey {
 			MenuItem menuItem = new MenuItem(popupMenu, SWT.CASCADE);
 			menuItem.setText(format("Convert Charset %s to", doc.getCurrentEncoding()));
 			menuItem.setImage(Activator.getImage("charset_convert"));
-			menuItem.setEnabled(nonDirty);
+			menuItem.setEnabled(nonDirty && doc.canConvertContent());
 			if (prefIs(PREF_DISABLE_DISCOURAGED_OPERATION) &&
 					(doc.getDetectedCharset() == null || doc.mismatchesEncoding())) {
 				menuItem.setEnabled(false);

@@ -68,7 +68,7 @@ public class EncodingControlContribution extends
 		// Autodetect: Set Automatically
 		if (
 			!agent.isDocumentDirty() &&
-			doc.canChangeFileEncoding() &&
+			doc.canChangeEncoding() &&
 			doc.mismatchesEncoding() &&
 			prefIs(PREF_AUTODETECT_CHANGE)
 		) {

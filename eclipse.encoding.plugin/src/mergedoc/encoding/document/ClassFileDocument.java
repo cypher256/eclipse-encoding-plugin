@@ -13,7 +13,7 @@ import org.eclipse.ui.IEditorPart;
 import mergedoc.encoding.Activator;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
 import mergedoc.encoding.LineSeparators;
-import mergedoc.encoding.PackageRoot;
+import mergedoc.encoding.JarResource;
 
 /**
  * This handler handles InternalClassFileEditorInput for ActiveDocumentAgent.
@@ -22,7 +22,7 @@ import mergedoc.encoding.PackageRoot;
 public class ClassFileDocument extends ActiveDocument {
 
 	private Object classFile;
-	private PackageRoot packageRoot;
+	private JarResource jarResource;
 
 	public ClassFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
@@ -40,8 +40,8 @@ public class ClassFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	public PackageRoot getPackageRoot() {
-		return packageRoot;
+	public JarResource getJarResource() {
+		return jarResource;
 	}
 
 	@Override
@@ -49,18 +49,18 @@ public class ClassFileDocument extends ActiveDocument {
 
 		super.updateStatus();
 
-		if (packageRoot == null) {
-			packageRoot = new PackageRoot();
+		if (jarResource == null) {
+			jarResource = new JarResource();
 		}
-		packageRoot.element = null;
-		packageRoot.encoding = null;
+		jarResource.element = null;
+		jarResource.encoding = null;
 
 		try {
-			packageRoot.element = (IAdaptable) classFile.getClass().getMethod("getPackageFragmentRoot").invoke(classFile);
+			jarResource.element = (IAdaptable) classFile.getClass().getMethod("getPackageFragmentRoot").invoke(classFile);
 
 			// Encoding of attached source classpath attribute in jar file.
 			// workspace or jar setting, don't use project encoding.
-			IAdaptable root = packageRoot.element;
+			IAdaptable root = jarResource.element;
 			Object entry = root.getClass().getMethod("getRawClasspathEntry").invoke(root);
 			Object attrs = entry.getClass().getMethod("getExtraAttributes").invoke(entry);
 			if (Array.getLength(attrs) > 0) {
@@ -70,7 +70,7 @@ public class ClassFileDocument extends ActiveDocument {
 				// .classpath file
 				if ("source_encoding".equals(name)) {
 					currentEncoding = (String) attr.getClass().getMethod("getValue").invoke(attr);
-					packageRoot.encoding = currentEncoding;
+					jarResource.encoding = currentEncoding;
 				}
 			}
 

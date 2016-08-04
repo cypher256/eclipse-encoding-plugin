@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 
 /**
+ * Provide general utility functions.
  * @author Shinji Kashihara
  */
 public class Langs {

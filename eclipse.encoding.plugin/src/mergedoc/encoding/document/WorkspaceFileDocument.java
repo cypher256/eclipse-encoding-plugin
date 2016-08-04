@@ -4,15 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.eclipse.core.internal.resources.ResourceException;
-import org.eclipse.core.internal.runtime.AdapterManager;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.core.runtime.content.IContentType;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 
@@ -20,7 +16,7 @@ import mergedoc.encoding.Activator;
 import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
 import mergedoc.encoding.LineSeparators;
-import mergedoc.encoding.PackageRoot;
+import mergedoc.encoding.ResourceProperties;
 
 /**
  * This handler handles workspace text file for ActiveDocumentAgent.
@@ -32,7 +28,6 @@ import mergedoc.encoding.PackageRoot;
 public class WorkspaceFileDocument extends ActiveDocument {
 
 	private IFile file;
-	private PackageRoot packageRoot;
 
 	public WorkspaceFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
@@ -53,22 +48,13 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	public PackageRoot getPackageRoot() {
-		return packageRoot;
-	}
-
-	@Override
 	public IFile getFile() {
 		return file;
 	}
 
 	@Override
 	public String getFilePropertiesEncoding() {
-		try {
-			return file.getCharset(false); // Non inheritance
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
-		}
+		return ResourceProperties.getEncoding(file);
 	}
 
 	@Override
@@ -86,12 +72,6 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	protected void updateStatus() {
 
 		super.updateStatus();
-
-		if (packageRoot == null) {
-			packageRoot = new PackageRoot();
-		}
-		packageRoot.element = null;
-		packageRoot.encoding = null;
 
 		try {
 			inheritedEncoding = file.getParent().getDefaultCharset();
@@ -116,17 +96,6 @@ public class WorkspaceFileDocument extends ActiveDocument {
 			if (lineSeparator == null) {
 				lineSeparator = LineSeparators.resolve(file);
 			}
-
-			IEditorInput editorInput = editor.getEditorInput();
-			Object ele = AdapterManager.getDefault().getAdapter(editorInput, "org.eclipse.jdt.core.IJavaElement");
-			if (ele != null) {
-				final int PACKAGE_FRAGMENT_ROOT = 3; // IJavaElement.PACKAGE_FRAGMENT_ROOT
-				packageRoot.element = (IAdaptable) ele.getClass()
-						.getMethod("getAncestor", int.class).invoke(ele, PACKAGE_FRAGMENT_ROOT);
-				IContainer c = (IContainer) packageRoot.element.getClass()
-						.getMethod("resource").invoke(packageRoot.element);
-				packageRoot.encoding = c.getDefaultCharset(false);
-			}
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
@@ -135,11 +104,11 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	public boolean canChangeFileEncoding() {
+	public boolean canChangeEncoding() {
 		return true;
 	}
 	@Override
-	public boolean canConvertLineSeparator() {
+	public boolean canConvertContent() {
 		return true;
 	}
 	@Override

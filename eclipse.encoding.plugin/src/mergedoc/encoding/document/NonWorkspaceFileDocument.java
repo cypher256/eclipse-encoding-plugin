@@ -145,11 +145,11 @@ public class NonWorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	public boolean canChangeFileEncoding() {
+	public boolean canChangeEncoding() {
 		return true;
 	}
 	@Override
-	public boolean canConvertLineSeparator() {
+	public boolean canConvertContent() {
 		return true;
 	}
 	@Override

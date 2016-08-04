@@ -70,7 +70,7 @@ public class LineSeparatorLabel implements PreferenceKey {
 			separatorItemList.add(new SeparatorItem("LF", "(\\n, 0A, Unix)"));
 		}
 
-		if (doc.canConvertLineSeparator()) {
+		if (doc.canConvertContent()) {
 			label.setToolTipText(format("Right-click to convert the line ending of '%s'", doc.getFileName()));
 		} else {
 			label.setToolTipText(null);
@@ -88,7 +88,7 @@ public class LineSeparatorLabel implements PreferenceKey {
 			public void menuShown(MenuEvent e) {
 
 				ActiveDocument doc = agent.getDocument();
-				doc.warnDirtyMessage(agent.isDocumentDirty() && doc.canConvertLineSeparator());
+				doc.warnDirtyMessage(agent.isDocumentDirty() && doc.canConvertContent());
 
 				// Remove existing menu items.
 				for (MenuItem item: popupMenu.getItems()) item.dispose();
@@ -146,7 +146,7 @@ public class LineSeparatorLabel implements PreferenceKey {
 	private void createSelectionMenu() {
 
 		final ActiveDocument doc = agent.getDocument();
-		boolean nonDirty = !agent.isDocumentDirty() && doc.canConvertLineSeparator();
+		boolean nonDirty = !agent.isDocumentDirty() && doc.canConvertContent();
 
 		for (final SeparatorItem separatorItem : separatorItemList) {
 
