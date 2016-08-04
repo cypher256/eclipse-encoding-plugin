@@ -1,19 +1,15 @@
 package mergedoc.encoding.document;
 
 import java.io.StringReader;
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 
-import mergedoc.encoding.Activator;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
-import mergedoc.encoding.LineSeparators;
 import mergedoc.encoding.JarResource;
+import mergedoc.encoding.LineSeparators;
 
 /**
  * This handler handles InternalClassFileEditorInput for ActiveDocumentAgent.
@@ -52,41 +48,12 @@ public class ClassFileDocument extends ActiveDocument {
 		if (jarResource == null) {
 			jarResource = new JarResource();
 		}
-		jarResource.element = null;
-		jarResource.encoding = null;
-
-		try {
-			jarResource.element = (IAdaptable) classFile.getClass().getMethod("getPackageFragmentRoot").invoke(classFile);
-
-			// Encoding of attached source classpath attribute in jar file.
-			// workspace or jar setting, don't use project encoding.
-			IAdaptable root = jarResource.element;
-			Object entry = root.getClass().getMethod("getRawClasspathEntry").invoke(root);
-			Object attrs = entry.getClass().getMethod("getExtraAttributes").invoke(entry);
-			if (Array.getLength(attrs) > 0) {
-				Object attr = Array.get(attrs, 0);
-				Object name = attr.getClass().getMethod("getName").invoke(attr);
-
-				// .classpath file
-				if ("source_encoding".equals(name)) {
-					currentEncoding = (String) attr.getClass().getMethod("getValue").invoke(attr);
-					jarResource.encoding = currentEncoding;
-				}
-			}
-
-		} catch (InvocationTargetException e) {
-			// Non class path entry getRawClasspathEntry
-			Activator.info(e.getCause().getMessage() + " " + getClass().getSimpleName());
-
-		} catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+		jarResource.setPackageFragmentRoot(classFile.getClass(), classFile);
 
 		IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());
 		if (contentType != null) {
 			contentTypeEncoding = contentType.getDefaultCharset();
 		}
-
 		String content = getContentString();
 		if (content != null) {
 			lineSeparator = LineSeparators.ofContent(new StringReader(content));

@@ -14,6 +14,7 @@ import org.eclipse.ui.IStorageEditorInput;
 
 import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
+import mergedoc.encoding.JarResource;
 import mergedoc.encoding.LineSeparators;
 
 /**
@@ -24,8 +25,8 @@ import mergedoc.encoding.LineSeparators;
  */
 public class StorageFileDocument extends ActiveDocument {
 
-	// The storage object associated with the editor.
 	private IStorage storage;
+	private JarResource jarResource;
 
 	public StorageFileDocument(IEditorPart part, IActiveDocumentAgentCallback callback) {
 		super(part, callback);
@@ -42,6 +43,7 @@ public class StorageFileDocument extends ActiveDocument {
 		}
 		try {
 			storage = ((IStorageEditorInput) editor.getEditorInput()).getStorage();
+			System.out.println(storage.getClass().getName());
 		} catch (CoreException e1) {
 			// hasContent is false
 			return;
@@ -80,9 +82,21 @@ public class StorageFileDocument extends ActiveDocument {
 	}
 
 	@Override
+	public JarResource getJarResource() {
+		return jarResource;
+	}
+
+	@Override
 	protected void updateStatus() {
 
 		super.updateStatus();
+
+		if (storage != null && storage.getClass().getName().equals("org.eclipse.jdt.internal.core.JarEntryFile")) {
+			if (jarResource == null) {
+				jarResource = new JarResource();
+			}
+			jarResource.setPackageFragmentRoot(storage.getClass().getSuperclass(), storage);
+		}
 
 		detectedCharset = Charsets.detect(getInputStream());
 		IContentType contentType = Platform.getContentTypeManager().findContentTypeFor(getFileName());

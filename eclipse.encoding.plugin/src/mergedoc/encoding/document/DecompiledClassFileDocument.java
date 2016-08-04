@@ -18,12 +18,12 @@ import mergedoc.encoding.LineSeparators;
  * This handler handles decompiler class file for ActiveDocumentAgent.
  * @author Shinji Kashihara
  */
-public class DecompilerClassFileDocument extends ActiveDocument {
+public class DecompiledClassFileDocument extends ActiveDocument {
 
 	// The text file associated with the editor.
 	private IFileStore fileStore;
 
-	public DecompilerClassFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+	public DecompiledClassFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
 	}
 
