@@ -157,7 +157,7 @@ public class ActiveDocument {
 		// It seems that the editor's encoding will not change when it is dirty
 		if (!editor.isDirty()) {
 			// The document may be just saved.
-			flush();
+			update();
 		}
 	}
 
@@ -195,15 +195,15 @@ public class ActiveDocument {
 		}
 		warnMessage(null);
 
-		flush();
+		update();
 	}
 
-	protected final void flush() {
+	protected final void update() {
 
 		String currentEncodingOld = currentEncoding;
 		String detectedCharsetOld = detectedCharset;
 		String contentCharsetOld = contentCharset;
-		byte[] bomOLD = bom;
+		byte[] bomOld = bom;
 		String lineSeparatorOld = lineSeparator;
 
 		updateStatus();
@@ -212,7 +212,7 @@ public class ActiveDocument {
 			!StringUtils.equals(currentEncodingOld, currentEncoding) ||
 			!StringUtils.equals(detectedCharsetOld, detectedCharset) ||
 			!StringUtils.equals(contentCharsetOld, contentCharset) ||
-			bomOLD != bom ||
+			bomOld != bom ||
 			!StringUtils.equals(lineSeparatorOld, lineSeparator)
 		) {
 			// Invoke the callback if the encoding information is changed
@@ -350,7 +350,7 @@ public class ActiveDocument {
 		}
 		String content = getContentString().replaceAll("(\\r\\n|\\r|\\n)", newSeparator);
 		setContents(content, getCurrentEncoding());
-		flush();
+		update();
 	}
 
 	public void infoMessage(String message, Object... args) {

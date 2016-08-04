@@ -11,23 +11,24 @@ import mergedoc.encoding.IActiveDocumentAgentCallback;
  */
 public class NullDocument extends ActiveDocument {
 
-	public NullDocument() {
-		super(null, null);
+	public NullDocument(IEditorPart editor) {
+		super(editor, null);
 	}
-	
+
 	@Override
 	protected void init(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+		this.editor = editor;
 	}
-	
+
 	@Override
 	public String getFileName() {
 		return null;
 	}
-	
+
 	@Override
 	public void propertyChanged(Object source, int propId) {
 	}
-	
+
 	@Override
 	public void setEncoding(String encoding) {
 	}

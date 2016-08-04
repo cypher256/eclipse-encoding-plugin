@@ -13,6 +13,7 @@ import mergedoc.encoding.LineSeparators;
 public class NullDocumentWorkspace extends NullDocument {
 
 	public NullDocumentWorkspace() {
+		super(null);
 	}
 
 	@Override
@@ -34,6 +35,6 @@ public class NullDocumentWorkspace extends NullDocument {
 
 	@Override
 	public void propertyChanged(Object source, int propId) {
-		flush();
+		update();
 	}
 }

@@ -88,7 +88,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	private ActiveDocument getDocument(IEditorPart editor) {
 
 		if (editor == null) {
-			// No opend editor in workspace
+			// No opened editor in workspace
 			return new NullDocumentWorkspace();
 		}
 		else if (editor.getAdapter(IEncodingSupport.class) != null) {
@@ -121,7 +121,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 			}
 		}
 		// MultiPageEditor no document tab
-		return new NullDocument();
+		return new NullDocument(editor);
 	}
 
 	/**
@@ -227,7 +227,8 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 		if (part instanceof IPageChangeProvider) {
 			((IPageChangeProvider) part).removePageChangedListener(this);
 		}
-		checkActiveEditor();
+		// Unnecessary: Call partActivated after this
+		//checkActiveEditor();
 	}
 
 	@Override

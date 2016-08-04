@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.graphics.Image;
 
 /**
@@ -50,19 +49,14 @@ public class Charsets {
 			InputStream bin = new BufferedInputStream(in);
 			try {
 				StrictUniversalDetector detector = new StrictUniversalDetector();
-				byte[] buf = new byte[4096];
+				byte[] buf = new byte[8192];
 				int nread;
 				while ((nread = in.read(buf)) > 0 && !detector.isDone()) {
 					detector.handleData(buf, 0, nread);
 				}
 				detector.dataEnd();
 				String charset = detector.getDetectedCharset();
-				String msName = toMicrosoftName(charset);
-				// Change to extended charset for Japanese
-				if (StringUtils.equalsIgnoreCase(msName, "shift_jis")) {
-					msName = "MS932";
-				}
-				return msName;
+				return toMicrosoftName(charset);
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			} finally {
