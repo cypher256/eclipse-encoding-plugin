@@ -10,12 +10,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.core.runtime.content.IContentType;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -31,9 +34,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.IDEEncoding;
 import org.eclipse.ui.internal.dialogs.ContentTypesPreferencePage;
+import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 import mergedoc.encoding.EncodingPreferenceInitializer.PreferenceKey;
@@ -163,8 +171,8 @@ public class EncodingLabel implements PreferenceKey {
 		}
 
 		// Project Properties
+		final IProject project = doc.getProject();
 		{
-			final IProject project = doc.getProject();
 			String encoding = null;
 			if (project != null) {
 				encoding = ResourceProperties.getEncoding(project);
@@ -346,6 +354,41 @@ public class EncodingLabel implements PreferenceKey {
 						Activator.warn("Failed select contentTypesViewer item.", ex);
 					}
 					dialog.open();
+				}
+			});
+		}
+
+		// Oepn Eclipse setting file
+		if (project != null) {
+			IEclipsePreferences pref = new ProjectScope(project).getNode("org.eclipse.core.resources/encoding");
+			Object[] keys = null;
+			try {
+				keys = pref.keys();
+			} catch (BackingStoreException e) {
+				throw new IllegalStateException(e);
+			}
+			String desc = null;
+			if (ArrayUtils.isEmpty(keys)) {
+				desc = "No File";
+			} else if (keys.length == 1 && ArrayUtils.contains(keys, "<project>")) {
+				desc = "Project Only";
+			} else {
+				desc = format("%s Resources", keys.length);
+			}
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("Oepn Setting File in Project", desc));
+			menuItem.setImage(Activator.getImage("setting"));
+			menuItem.setEnabled(ArrayUtils.isNotEmpty(keys));
+			menuItem.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					try {
+						IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+						IFile prefFile = project.getFolder(".settings").getFile("org.eclipse.core.resources.prefs");
+						IDE.openEditor(page, prefFile);
+					} catch (PartInitException pe) {
+						throw new IllegalStateException(pe);
+					}
 				}
 			});
 		}
