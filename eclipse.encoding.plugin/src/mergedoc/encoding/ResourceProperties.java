@@ -28,4 +28,9 @@ public class ResourceProperties {
 			throw new IllegalStateException(e);
 		}
 	}
+
+	public static String getEncoding(IContainer container, String defaultValue) {
+		String encoding = getEncoding(container);
+		return encoding == null ? defaultValue : encoding;
+	}
 }

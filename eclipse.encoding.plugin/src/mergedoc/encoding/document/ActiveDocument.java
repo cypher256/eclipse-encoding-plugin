@@ -82,9 +82,6 @@ public class ActiveDocument {
 	public IFile getFile() {
 		return null;
 	}
-	public String getFilePropertiesEncoding() {
-		return null;
-	}
 	public IContentDescription getContentDescription() {
 		return null;
 	}

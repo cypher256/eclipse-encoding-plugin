@@ -53,11 +53,6 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
-	public String getFilePropertiesEncoding() {
-		return ResourceProperties.getEncoding(file);
-	}
-
-	@Override
 	public IContentDescription getContentDescription() {
 		try {
 			return file.getContentDescription();
@@ -80,7 +75,7 @@ public class WorkspaceFileDocument extends ActiveDocument {
 			IContentDescription contentDescription = getContentDescription();
 			if (contentDescription != null) {
 				contentCharset = contentDescription.getCharset();
-				if (contentCharset != null && getFilePropertiesEncoding() == null) {
+				if (contentCharset != null && ResourceProperties.getEncoding(file) == null) {
 					currentEncoding = contentCharset;
 				}
 				IContentType contentType = contentDescription.getContentType();

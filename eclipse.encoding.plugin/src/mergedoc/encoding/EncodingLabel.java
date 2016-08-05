@@ -175,10 +175,7 @@ public class EncodingLabel implements PreferenceKey {
 		{
 			String encoding = null;
 			if (project != null) {
-				encoding = ResourceProperties.getEncoding(project);
-				if (encoding == null) {
-					encoding = "Inheritance";
-				}
+				encoding = ResourceProperties.getEncoding(project, "Inheritance");
 			}
 			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
 			menuItem.setText(formatLabel("Project Properties...", encoding));
@@ -195,46 +192,72 @@ public class EncodingLabel implements PreferenceKey {
 		}
 
 		// JAR File Properties
-		final IFile file = doc.getFile();
-		if (file == null) {
-			final JarResource jar = doc.getJarResource();
-			if (jar != null && jar.element != null) {
-				String encoding = jar.encoding;
-				if (encoding == null) {
-					encoding = "Inheritance";
-				}
-				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
-				menuItem.setText(formatLabel("JAR File Properties...", encoding));
-				menuItem.setImage(Activator.getImage("root"));
-				menuItem.addSelectionListener(new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
-							jar.element,
-							"org.eclipse.jdt.ui.propertyPages.SourceAttachmentPage", null, null).open();
-					}
-				});
+		final JarResource jar = doc.getJarResource();
+		if (jar != null && jar.element != null) {
+			String encoding = jar.encoding;
+			if (encoding == null) {
+				encoding = "Inheritance";
 			}
+			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+			menuItem.setText(formatLabel("JAR File Properties...", encoding));
+			menuItem.setImage(Activator.getImage("root"));
+			menuItem.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
+						jar.element,
+						"org.eclipse.jdt.ui.propertyPages.SourceAttachmentPage", null, null).open();
+				}
+			});
 		}
 
 		// Folder Properties
 		else {
-			List<IContainer> folders = new ArrayList<IContainer>();
-			for (
-					IContainer folder = file.getParent();
-					folder != null && (folder instanceof IProject) == false;
-					folder = folder.getParent()
-			) {
-				folders.add(0, folder);
+			IFile file = doc.getFile();
+			final List<IContainer> folders = new ArrayList<IContainer>();
+			String lastEncoding = null;
+			if (file != null) {
+				for (
+						IContainer folder = file.getParent();
+						folder != null && (folder instanceof IProject) == false;
+						folder = folder.getParent()
+				) {
+					folders.add(0, folder);
+					if (lastEncoding == null) {
+						lastEncoding = ResourceProperties.getEncoding(folder);
+					}
+				}
+				if (lastEncoding == null && folders.size() > 0) {
+					lastEncoding = "Inheritance";
+				}
 			}
-			for (final IContainer folder : folders) {
+			if (folders.size() <= 1) {
+				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
+				menuItem.setText(formatLabel("Folder Properties...", lastEncoding));
+				menuItem.setImage(Activator.getImage("folder"));
+				menuItem.setEnabled(folders.size() != 0);
+				menuItem.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
+							folders.get(0),
+							"org.eclipse.ui.propertypages.info.file", null, null).open();
+					}
+				});
+			}
+			else {
+				MenuItem menuItem = new MenuItem(popupMenu, SWT.CASCADE);
+				menuItem.setText(formatLabel("Folder Properties", lastEncoding));
+				menuItem.setImage(Activator.getImage("folder"));
+				Menu folderMenu = new Menu(menuItem);
+				menuItem.setMenu(folderMenu);
 
-				String encoding = ResourceProperties.getEncoding(folder);
-				if (encoding != null) {
-					MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
-					menuItem.setText(formatLabel(format("%s Folder Properties...", folder.getName()), encoding));
-					menuItem.setImage(Activator.getImage("folder"));
-					menuItem.addSelectionListener(new SelectionAdapter() {
+				for (final IContainer folder : folders) {
+					String encoding = ResourceProperties.getEncoding(folder, "Inheritance");
+					MenuItem mItem = new MenuItem(folderMenu, SWT.NONE);
+					mItem.setText(folder.getName() + formatLabelSuffix(encoding));
+					mItem.setImage(Activator.getImage("folder"));
+					mItem.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							PreferencesUtil.createPropertyDialogOn(Display.getDefault().getActiveShell(),
@@ -248,16 +271,20 @@ public class EncodingLabel implements PreferenceKey {
 
 		// File Properties
 		{
-			String labelText = doc.getCurrentEncodingLabel();
-			if (doc.getFilePropertiesEncoding() == null) {
-				String currentEncoding = doc.getCurrentEncoding();
-				if (Charsets.equals(currentEncoding, doc.getContentTypeEncoding())) {
-					labelText = "Content Type";
-				} else if (Charsets.equals(currentEncoding, doc.getContentCharset())) {
-					labelText += format(" Content");
-				} else {
-					labelText = "Inheritance";
+			final IFile file = doc.getFile();
+			String labelText = null;
+			if (file != null) {
+				labelText = doc.getCurrentEncodingLabel();
+				if (ResourceProperties.getEncoding(file) == null) {
+					String currentEncoding = doc.getCurrentEncoding();
+					if (Charsets.equals(currentEncoding, doc.getContentTypeEncoding())) {
+						labelText = "Content Type";
+					} else if (Charsets.equals(currentEncoding, doc.getContentCharset())) {
+						labelText += format(" Content");
+					} else {
+						labelText = "Inheritance";
 
+					}
 				}
 			}
 			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
@@ -325,7 +352,7 @@ public class EncodingLabel implements PreferenceKey {
 		// Content Type Preferences
 		{
 			String encoding = doc.getContentTypeEncoding();
-			if (encoding == null) {
+			if (encoding == null && doc.enabledContentType()) {
 				encoding = "Not Set";
 			}
 			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);

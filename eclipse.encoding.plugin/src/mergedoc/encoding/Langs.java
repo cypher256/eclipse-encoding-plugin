@@ -21,6 +21,10 @@ public class Langs {
 	}
 
 	public static String formatLabel(String text, String... noteArray) {
+		return format(text) + formatLabelSuffix(noteArray);
+	}
+
+	public static String formatLabelSuffix(String... noteArray) {
 		ArrayList<String> noteList = new ArrayList<String>();
 		for (String n : noteArray) {
 			if (n != null) {
@@ -32,8 +36,8 @@ public class Langs {
 		}
 		String note = StringUtils.join(noteList, ", ");
 		if (StringUtils.isEmpty(note)) {
-			return format(text);
+			return "";
 		}
-		return format(text) + " (" + note + ")";
+		return " (" + note + ")";
 	}
 }
