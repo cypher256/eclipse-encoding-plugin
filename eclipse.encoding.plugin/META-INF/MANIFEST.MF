@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Encoding StatusBar
 Bundle-SymbolicName: mergedoc.encoding;singleton:=true
-Bundle-Version: 1.7.3.qualifier
+Bundle-Version: 1.7.4.qualifier
 Bundle-Activator: mergedoc.encoding.Activator
 Bundle-Vendor: Shinji Kashihara
 Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",

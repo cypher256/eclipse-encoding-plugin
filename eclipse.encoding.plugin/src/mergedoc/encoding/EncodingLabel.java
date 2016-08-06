@@ -247,8 +247,8 @@ public class EncodingLabel implements PreferenceKey {
 			}
 			else {
 				MenuItem menuItem = new MenuItem(popupMenu, SWT.CASCADE);
-				menuItem.setText(formatLabel("Folder Properties", lastEncoding));
-				menuItem.setImage(Activator.getImage("folder"));
+				menuItem.setText(formatLabel("Folders Properties", lastEncoding));
+				menuItem.setImage(Activator.getImage("folders"));
 				Menu folderMenu = new Menu(menuItem);
 				menuItem.setMenu(folderMenu);
 
@@ -397,7 +397,7 @@ public class EncodingLabel implements PreferenceKey {
 			String desc = null;
 			if (ArrayUtils.isEmpty(keys)) {
 				desc = "No File";
-			} else if (keys.length == 1 && ArrayUtils.contains(keys, "<project>")) {
+			} else if (keys.length == 1 && "<project>".equals(keys[0])) {
 				desc = "Project Only";
 			} else {
 				desc = format("%s Resources", keys.length);

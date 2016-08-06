@@ -15,12 +15,12 @@ import mergedoc.encoding.LineSeparators;
  * This handler handles InternalClassFileEditorInput for ActiveDocumentAgent.
  * @author Shinji Kashihara
  */
-public class ClassFileDocument extends ActiveDocument {
+public class ClassFileJarDocument extends ActiveDocument {
 
 	private Object classFile;
 	private JarResource jarResource;
 
-	public ClassFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+	public ClassFileJarDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
 	}
 

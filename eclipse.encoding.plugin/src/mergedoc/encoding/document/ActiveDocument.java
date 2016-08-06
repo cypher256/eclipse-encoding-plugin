@@ -123,7 +123,7 @@ public class ActiveDocument {
 		return sb.toString();
 	}
 	public boolean canOperateBOM() {
-		// Not support UTF-32 as in the Eclipse
+		// Non support UTF-32 as in the Eclipse
 		return currentEncoding != null && currentEncoding.matches("UTF-(8|16|16BE|16LE)");
 	}
 	public boolean hasBOM() {
@@ -321,8 +321,8 @@ public class ActiveDocument {
 					setContents(ArrayUtils.subarray(bytes, BOM_UTF_16BE.length, Integer.MAX_VALUE));
 					setEncoding("UTF-16LE");
 				}
+				// Not support UTF-32 as in the Eclipse
 			}
-			// Not support UTF-32 as in the Eclipse
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		} finally {

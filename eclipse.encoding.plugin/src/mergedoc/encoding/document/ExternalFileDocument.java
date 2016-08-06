@@ -30,12 +30,12 @@ import mergedoc.encoding.LineSeparators;
  * @author Tsoi Yat Shing
  * @author Shinji Kashihara
  */
-public class NonWorkspaceFileDocument extends ActiveDocument {
+public class ExternalFileDocument extends ActiveDocument {
 
 	// The text file associated with the editor.
 	private IFileStore fileStore;
 
-	public NonWorkspaceFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
+	public ExternalFileDocument(IEditorPart editor, IActiveDocumentAgentCallback callback) {
 		super(editor, callback);
 	}
 

@@ -18,11 +18,11 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import mergedoc.encoding.document.ActiveDocument;
-import mergedoc.encoding.document.ClassFileDocument;
-import mergedoc.encoding.document.DecompiledClassFileDocument;
-import mergedoc.encoding.document.NonWorkspaceFileDocument;
+import mergedoc.encoding.document.ClassFileJarDocument;
+import mergedoc.encoding.document.ClassFileSingleDocument;
+import mergedoc.encoding.document.ExternalFileDocument;
+import mergedoc.encoding.document.NonOpenedDocument;
 import mergedoc.encoding.document.NullDocument;
-import mergedoc.encoding.document.NullDocumentWorkspace;
 import mergedoc.encoding.document.StorageFileDocument;
 import mergedoc.encoding.document.WorkspaceFileDocument;
 
@@ -90,11 +90,11 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 
 		if (editor == null) {
 			// No opened editor in workspace
-			return new NullDocumentWorkspace();
+			return new NonOpenedDocument();
 		}
 		else if (editor.getAdapter(IEncodingSupport.class) != null) {
 
-			// MultiPartEditor active tab
+			// Get MultiPartEditor active tab
 			if (editor instanceof FormEditor) {
 				 IEditorPart e = ((FormEditor) editor).getActiveEditor();
 				 if (e instanceof ITextEditor) {
@@ -108,9 +108,9 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 			else if (editorInput instanceof FileStoreEditorInput) {
 				// Decompiled class file in bin directory
 				if (editorInput.getClass().getSimpleName().equals("DecompilerClassEditorInput")) {
-					return new DecompiledClassFileDocument(editor, callback);
+					return new ClassFileSingleDocument(editor, callback);
 				}
-				return new NonWorkspaceFileDocument(editor, callback);
+				return new ExternalFileDocument(editor, callback);
 			}
 			else if (editorInput instanceof IStorageEditorInput) {
 				// Non class file resources in jar
@@ -120,10 +120,11 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 					return doc;
 				}
 				// Fallback
+				Activator.info("No Content: " + editorInput.getClass().getName());
 				return new ActiveDocument(editor, callback);
 			} else if (editorInput.getClass().getSimpleName().equals("InternalClassFileEditorInput")) {
-				// Class file in jar
-				return new ClassFileDocument(editor, callback);
+				// Class file in jar (with source and without source)
+				return new ClassFileJarDocument(editor, callback);
 			}
 		}
 		// MultiPageEditor no document tab

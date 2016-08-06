@@ -81,7 +81,7 @@ public class EncodingControlContribution extends
 				if (!Charsets.equals(detectedEncoding, workspaceEncoding)) {
 					doc.setEncoding(detectedEncoding);
 					doc.infoMessage(message, detectedEncoding);
-					return;
+					return; // Reload for setEncoding
 				}
 			}
 			else {
@@ -89,7 +89,7 @@ public class EncodingControlContribution extends
 				if (ResourceProperties.getEncoding(file) == null) {
 					doc.setEncoding(detectedEncoding);
 					doc.infoMessage(message, detectedEncoding);
-					return;
+					return; // Reload for setEncoding
 				}
 			}
 		}

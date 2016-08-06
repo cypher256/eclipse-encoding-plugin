@@ -6,14 +6,22 @@ import java.lang.reflect.InvocationTargetException;
 import org.eclipse.core.runtime.IAdaptable;
 
 /**
- * Jar file in Java project.
+ * JAR file resource in Java project.
  * @author Shinji Kashihara
  */
 public class JarResource {
 
+	/** JAR element */
 	public IAdaptable element;
+
+	/** JAR file properties encoding */
 	public String encoding;
 
+	/**
+	 * Set the target resource in JAR.
+	 * @param clazz getPackageFragmentRoot declared class
+	 * @param targetResource resource in JAR
+	 */
 	public void setPackageFragmentRoot(Class<?> clazz, Object targetResource) {
 
 		element = null;
@@ -22,8 +30,8 @@ public class JarResource {
 		try {
 			element = (IAdaptable) clazz.getMethod("getPackageFragmentRoot").invoke(targetResource);
 
-			// Encoding of attached source classpath attribute in jar file.
-			// workspace or jar setting, don't use project encoding.
+			// Encoding of attached source classpath attribute in JAR file.
+			// Using the workspace or jar setting, the project encoding is not used.
 			IAdaptable root = element;
 			Object entry = root.getClass().getMethod("getRawClasspathEntry").invoke(root);
 			Object attrs = entry.getClass().getMethod("getExtraAttributes").invoke(entry);
@@ -38,7 +46,7 @@ public class JarResource {
 			}
 
 		} catch (InvocationTargetException e) {
-			// Non class path entry getRawClasspathEntry
+			// Non class path entry for getRawClasspathEntry
 			Activator.info(e.getCause().getMessage() + " " + getClass().getSimpleName());
 
 		} catch (Exception e) {

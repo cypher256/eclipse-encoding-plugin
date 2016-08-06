@@ -43,8 +43,7 @@ public class StorageFileDocument extends ActiveDocument {
 		}
 		try {
 			storage = ((IStorageEditorInput) editor.getEditorInput()).getStorage();
-			System.out.println(storage.getClass().getName());
-		} catch (CoreException e1) {
+		} catch (CoreException e) {
 			// hasContent is false
 			return;
 		}
