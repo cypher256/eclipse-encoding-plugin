@@ -38,7 +38,7 @@
 
 package mergedoc.encoding;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.Constants;
 import org.mozilla.universalchardet.prober.CharsetProber;
