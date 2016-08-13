@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="eclipse.encoding.plugin.feature"
-      label="Encoding StatusBar"
-      version="1.7.5.qualifier"
+      label="Autodetect Encoding"
+      version="1.8.0.qualifier"
       provider-name="Shinji Kashihara">
 
    <description url="https://github.com/cypher256/eclipse-encoding-plugin">
@@ -104,7 +104,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
    </license>
 
    <url>
-      <update label="Encoding StatusBar Update Site" url="https://cypher256.github.io/eclipse-encoding-plugin/"/>
+      <update label="Autodetect Encoding Plugin Update Site" url="https://cypher256.github.io/eclipse-encoding-plugin/"/>
    </url>
 
    <plugin
