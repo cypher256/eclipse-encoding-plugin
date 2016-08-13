@@ -1,4 +1,4 @@
-# Encoding StatusBar Eclipse Plugin
+# Autodetect Encoding Eclipse Plugin
 Show file information for the active editor in the Eclipse status bar.  
 
 ## Install
