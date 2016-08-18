@@ -31,7 +31,7 @@ Inheritance: Inherited from folder or project properties, workspace preferences
 Content Type: Determined from content type setting  
 
 'Autodetect: Set Automatically'  
-This only applies if the file properties encoding is not specified.
+This only applies if the file properties encoding is not specified.  
 An automatically set is not enabled by default.
 
 ## License
