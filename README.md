@@ -32,6 +32,7 @@ Content Type: Determined from content type setting
 
 'Autodetect: Set Automatically'  
 This only applies if the file properties encoding is not specified.
+An automatically set is not enabled by default.
 
 ## License
 [Eclipse Public License - v 1.0](https://www.eclipse.org/legal/epl-v10.html)  
