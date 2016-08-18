@@ -44,6 +44,9 @@ public class EncodingControlContribution extends
 	@Override
 	protected Control createControl(Composite parent) {
 
+		// Label small height bug workarround for Neon - https://bugs.eclipse.org/bugs/show_bug.cgi?id=471313
+		parent.getParent().setRedraw(true);
+
 		agent.start(getWorkbenchWindow());
 		statusBar = new Composite(parent, SWT.NONE);
 

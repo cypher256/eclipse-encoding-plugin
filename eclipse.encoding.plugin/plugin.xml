@@ -10,11 +10,6 @@
             <control
                   class="mergedoc.encoding.EncodingControlContribution">
             </control>
-            <command
-                  commandId="mergedoc.encoding.commands.fixheight"
-                  label="%mergedoc.encoding.commands.fixheight"
-                  style="push">
-            </command>
          </toolbar>
       </menuContribution>
    </extension>
