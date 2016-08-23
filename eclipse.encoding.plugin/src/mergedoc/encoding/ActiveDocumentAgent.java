@@ -137,18 +137,16 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	 */
 	public void start(IWorkbenchWindow window) {
 
-		if (!isStarted) {
-			if (window != null) {
-				isStarted = true;
-				this.window = window;
+		if (!isStarted && window != null) {
+			isStarted = true;
+			this.window = window;
 
-				// Update the current handler.
-				// Not invoke the callback during start.
-				setCurrentDocument(getDocument(getActiveEditor()));
+			// Update the current handler.
+			// Not invoke the callback during start.
+			setCurrentDocument(getDocument(getActiveEditor()));
 
-				// Add listeners.
-				window.getPartService().addPartListener(this);
-			}
+			// Add listeners.
+			window.getPartService().addPartListener(this);
 		}
 	}
 
@@ -253,9 +251,11 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 		checkActiveEditor();
 	}
 
+	/**
+	 * MultiPageEditorPart tab changed.
+	 */
 	@Override
 	public void pageChanged(PageChangedEvent event) {
-		// MultiPageEditorPart tab changed
 		setCurrentDocument(getDocument(getActiveEditor()));
 		callback.statusChanged();
 	}
