@@ -41,6 +41,15 @@ public class ClassFileSingleDocument extends ActiveDocument {
 	}
 
 	@Override
+	public boolean canOperateBOM() {
+		return false;
+	}
+	@Override
+	public boolean canChangeEncoding() {
+		return true;
+	}
+
+	@Override
 	protected void updateStatus() {
 
 		super.updateStatus();
@@ -48,16 +57,6 @@ public class ClassFileSingleDocument extends ActiveDocument {
 		inheritedEncoding = ResourcesPlugin.getEncoding();
 		detectedCharset = Charsets.detect(getInputStream());
 		lineSeparator = LineSeparators.ofContent(getInputStream(), getCurrentEncoding());
-	}
-
-	@Override
-	public boolean canOperateBOM() {
-		return false;
-	}
-
-	@Override
-	public boolean canChangeEncoding() {
-		return true;
 	}
 
 	@Override

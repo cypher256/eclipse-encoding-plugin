@@ -28,8 +28,4 @@ public class NullDocument extends ActiveDocument {
 	@Override
 	public void propertyChanged(Object source, int propId) {
 	}
-
-	@Override
-	public void setEncoding(String encoding) {
-	}
 }

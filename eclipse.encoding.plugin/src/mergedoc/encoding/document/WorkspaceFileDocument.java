@@ -43,6 +43,19 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	}
 
 	@Override
+	public boolean canChangeEncoding() {
+		return true;
+	}
+	@Override
+	public boolean canConvertContent() {
+		return true;
+	}
+	@Override
+	public boolean enabledContentType() {
+		return true;
+	}
+
+	@Override
 	public IProject getProject() {
 		return file.getProject();
 	}
@@ -96,19 +109,6 @@ public class WorkspaceFileDocument extends ActiveDocument {
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
-	}
-
-	@Override
-	public boolean canChangeEncoding() {
-		return true;
-	}
-	@Override
-	public boolean canConvertContent() {
-		return true;
-	}
-	@Override
-	public boolean enabledContentType() {
-		return true;
 	}
 
 	@Override

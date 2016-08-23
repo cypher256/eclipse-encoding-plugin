@@ -10,10 +10,10 @@ import mergedoc.encoding.LineSeparators;
  * This is not opend editor in workspace handler for ActiveDocumentAgent.
  * @author Shinji Kashihara
  */
-public class NonOpenedDocument extends NullDocument {
+public class NonOpenedDocument extends ActiveDocument {
 
 	public NonOpenedDocument() {
-		super(null);
+		super(null, null);
 	}
 
 	@Override

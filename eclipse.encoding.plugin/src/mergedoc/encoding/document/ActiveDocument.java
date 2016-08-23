@@ -66,6 +66,16 @@ public class ActiveDocument {
 		updateStatus();
 	}
 
+	public boolean canChangeEncoding() {
+		return false;
+	}
+	public boolean canConvertContent() {
+		return false;
+	}
+	public boolean enabledContentType() {
+		return false;
+	}
+
 	/**
 	 * Get the editor associated with this handler.
 	 * If the associated editor is different from the active editor, ActiveDocumentAgent will change handler.
@@ -238,16 +248,6 @@ public class ActiveDocument {
 			}
 			bom = resolveBOM();
 		}
-	}
-
-	public boolean canChangeEncoding() {
-		return false;
-	}
-	public boolean canConvertContent() {
-		return false;
-	}
-	public boolean enabledContentType() {
-		return false;
 	}
 
 	protected InputStream getInputStream() {

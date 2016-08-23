@@ -53,6 +53,19 @@ public class ExternalFileDocument extends ActiveDocument {
 	}
 
 	@Override
+	public boolean canChangeEncoding() {
+		return true;
+	}
+	@Override
+	public boolean canConvertContent() {
+		return true;
+	}
+	@Override
+	public boolean enabledContentType() {
+		return true;
+	}
+
+	@Override
 	public IContentDescription getContentDescription() {
 		IContentType contentType = getContentType();
 		if (contentType != null) {
@@ -142,19 +155,6 @@ public class ExternalFileDocument extends ActiveDocument {
 				throw new IllegalStateException(e);
 			}
 		}
-	}
-
-	@Override
-	public boolean canChangeEncoding() {
-		return true;
-	}
-	@Override
-	public boolean canConvertContent() {
-		return true;
-	}
-	@Override
-	public boolean enabledContentType() {
-		return true;
 	}
 
 	@Override

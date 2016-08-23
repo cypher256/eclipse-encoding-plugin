@@ -92,9 +92,10 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 			// No opened editor in workspace
 			return new NonOpenedDocument();
 		}
-		else if (editor.getAdapter(IEncodingSupport.class) != null) {
+		
+		if (editor.getAdapter(IEncodingSupport.class) != null) {
 
-			// Get MultiPartEditor active tab
+			// Get MultiPartEditor active tab (plugin.xml MANIFEST.MF tab, etc...)
 			if (editor instanceof FormEditor) {
 				 IEditorPart e = ((FormEditor) editor).getActiveEditor();
 				 if (e instanceof ITextEditor) {
@@ -127,7 +128,8 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 				return new ClassFileJarDocument(editor, callback);
 			}
 		}
-		// MultiPageEditor no document tab
+		
+		// MultiPageEditor no document tab (plugin.xml overview tab, etc...)
 		return new NullDocument(editor);
 	}
 
@@ -205,6 +207,10 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 		}
 	}
 
+	public void fireEncodingChanged() {
+		callback.statusChanged();
+	}
+
 	@Override
 	public void propertyChanged(Object source, int propId) {
 		if (propId == IEditorPart.PROP_INPUT) {
@@ -257,10 +263,6 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 	@Override
 	public void pageChanged(PageChangedEvent event) {
 		setCurrentDocument(getDocument(getActiveEditor()));
-		callback.statusChanged();
-	}
-
-	public void fireEncodingChanged() {
 		callback.statusChanged();
 	}
 }
