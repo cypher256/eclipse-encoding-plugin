@@ -16,7 +16,7 @@ import mergedoc.encoding.Activator;
 import mergedoc.encoding.Charsets;
 import mergedoc.encoding.IActiveDocumentAgentCallback;
 import mergedoc.encoding.LineSeparators;
-import mergedoc.encoding.ResourceProperties;
+import mergedoc.encoding.Resources;
 
 /**
  * This handler handles workspace text file for ActiveDocumentAgent.
@@ -70,7 +70,8 @@ public class WorkspaceFileDocument extends ActiveDocument {
 		try {
 			return file.getContentDescription();
 		} catch (ResourceException e) {
-			return null; // Out of sync, etc...
+			// Out of sync, etc... => No rethrow
+			return null;
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
@@ -88,7 +89,7 @@ public class WorkspaceFileDocument extends ActiveDocument {
 			IContentDescription contentDescription = getContentDescription();
 			if (contentDescription != null) {
 				contentCharset = contentDescription.getCharset();
-				if (contentCharset != null && ResourceProperties.getEncoding(file) == null) {
+				if (contentCharset != null && Resources.getEncoding(file) == null) {
 					currentEncoding = contentCharset;
 				}
 				IContentType contentType = contentDescription.getContentType();
@@ -115,14 +116,8 @@ public class WorkspaceFileDocument extends ActiveDocument {
 	protected InputStream getInputStream() {
 		try {
 			return file.getContents(true);
-		}
-		// Out of sync, etc...
-		catch (ResourceException e) {
-			Activator.warn(e.getMessage());
-			return null;
-		}
-		// File not found, etc...
-		catch (CoreException e) {
+		} catch (CoreException e) {
+			// Out of sync, File not found, etc... => No rethrow
 			Activator.warn(e.getMessage());
 			return null;
 		}

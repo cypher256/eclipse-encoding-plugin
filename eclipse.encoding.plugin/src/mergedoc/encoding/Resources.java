@@ -5,12 +5,12 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 
 /**
- * Provide the Eclipse resources properties related utility functions.
+ * Provide the Eclipse resources related utility functions.
  * @author Shinji Kashihara
  */
-public class ResourceProperties {
+public class Resources {
 
-	private ResourceProperties() {
+	private Resources() {
 	}
 
 	public static String getEncoding(IFile file) {

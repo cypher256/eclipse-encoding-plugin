@@ -89,7 +89,7 @@ public class EncodingControlContribution extends
 			}
 			else {
 				// Workspace file, if file properties null
-				if (ResourceProperties.getEncoding(file) == null) {
+				if (Resources.getEncoding(file) == null) {
 					doc.setEncoding(detectedEncoding);
 					doc.infoMessage(message, detectedEncoding);
 					return; // Reload for setEncoding

@@ -175,7 +175,7 @@ public class EncodingLabel implements PreferenceKey {
 		{
 			String encoding = null;
 			if (project != null) {
-				encoding = ResourceProperties.getEncoding(project, "Inheritance");
+				encoding = Resources.getEncoding(project, "Inheritance");
 			}
 			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
 			menuItem.setText(formatLabel("Project Properties...", encoding));
@@ -224,7 +224,7 @@ public class EncodingLabel implements PreferenceKey {
 				) {
 					folders.add(0, folder);
 					if (lastEncoding == null) {
-						lastEncoding = ResourceProperties.getEncoding(folder);
+						lastEncoding = Resources.getEncoding(folder);
 					}
 				}
 				if (lastEncoding == null && folders.size() > 0) {
@@ -253,7 +253,7 @@ public class EncodingLabel implements PreferenceKey {
 				menuItem.setMenu(folderMenu);
 
 				for (final IContainer folder : folders) {
-					String encoding = ResourceProperties.getEncoding(folder, "Inheritance");
+					String encoding = Resources.getEncoding(folder, "Inheritance");
 					MenuItem mItem = new MenuItem(folderMenu, SWT.NONE);
 					mItem.setText(folder.getName() + formatLabelSuffix(encoding));
 					mItem.setImage(Activator.getImage("folder"));
@@ -275,7 +275,7 @@ public class EncodingLabel implements PreferenceKey {
 			String labelText = null;
 			if (file != null) {
 				labelText = doc.getCurrentEncodingLabel();
-				if (ResourceProperties.getEncoding(file) == null) {
+				if (Resources.getEncoding(file) == null) {
 					String currentEncoding = doc.getCurrentEncoding();
 					if (Charsets.equals(currentEncoding, doc.getContentTypeEncoding())) {
 						labelText = "Content Type";
