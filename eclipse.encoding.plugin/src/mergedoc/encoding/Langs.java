@@ -1,7 +1,5 @@
 package mergedoc.encoding;
 
-import static java.lang.String.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,12 +14,16 @@ public class Langs {
 	private Langs() {
 	}
 
-	public static String formatLabel(String text, List<String> noteList) {
-		return formatLabel(text, noteList.toArray(new String[noteList.size()]));
+	public static String format(String text, Object... params) {
+		return String.format(text, params);
 	}
 
 	public static String formatLabel(String text, String... noteArray) {
 		return format(text) + formatLabelSuffix(noteArray);
+	}
+
+	public static String formatLabel(String text, List<String> noteList) {
+		return formatLabel(text, noteList.toArray(new String[noteList.size()]));
 	}
 
 	public static String formatLabelSuffix(String... noteArray) {

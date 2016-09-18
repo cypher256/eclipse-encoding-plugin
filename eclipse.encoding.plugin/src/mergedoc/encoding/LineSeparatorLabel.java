@@ -1,6 +1,5 @@
 package mergedoc.encoding;
 
-import static java.lang.String.*;
 import static mergedoc.encoding.Activator.*;
 import static mergedoc.encoding.Langs.*;
 

@@ -1,6 +1,5 @@
 package mergedoc.encoding;
 
-import static java.lang.String.*;
 import static mergedoc.encoding.Activator.*;
 import static mergedoc.encoding.Langs.*;
 
@@ -134,7 +133,7 @@ public class EncodingLabel implements PreferenceKey {
 	private void createSettingMenuItem(final String prefKey, String message) {
 
 		final MenuItem menuItem = new MenuItem(popupMenu, SWT.CHECK);
-		menuItem.setText(message);
+		menuItem.setText(format(message));
 		menuItem.setSelection(prefIs(prefKey));
 		menuItem.addSelectionListener(new SelectionAdapter() {
 
@@ -432,7 +431,7 @@ public class EncodingLabel implements PreferenceKey {
 		if (doc.canOperateBOM()) {
 			if (doc.hasBOM()) {
 				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
-				menuItem.setText("Remove BOM");
+				menuItem.setText(format("Remove BOM"));
 				menuItem.setImage(Activator.getImage("bom_remove"));
 				menuItem.setEnabled(nonDirty);
 				menuItem.addSelectionListener(new SelectionAdapter() {
@@ -443,7 +442,7 @@ public class EncodingLabel implements PreferenceKey {
 				});
 			} else {
 				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
-				menuItem.setText("Add BOM");
+				menuItem.setText(format("Add BOM"));
 				menuItem.setImage(Activator.getImage("bom_add"));
 				menuItem.setEnabled(nonDirty);
 				if (prefIs(PREF_DISABLE_DISCOURAGED_OPERATION) &&
@@ -493,7 +492,7 @@ public class EncodingLabel implements PreferenceKey {
 		// Change Encoding
 		{
 			MenuItem menuItem = new MenuItem(popupMenu, SWT.CASCADE);
-			menuItem.setText("Change Encoding to");
+			menuItem.setText(format("Change Encoding to"));
 			menuItem.setImage(Activator.getImage("encoding_change"));
 			menuItem.setEnabled(nonDirty);
 			if (prefIs(PREF_DISABLE_DISCOURAGED_OPERATION) && doc.matchesEncoding()) {
@@ -529,11 +528,11 @@ public class EncodingLabel implements PreferenceKey {
 			menuItem.setImage(Activator.getImage("autodetect"));
 
 			if (doc.getDetectedCharset() == null) {
-				menuItem.setText("Change Encoding (Cannot Autodetect)");
+				menuItem.setText(format("Change Encoding (Cannot Autodetect)"));
 				menuItem.setEnabled(false);
 			}
 			else if (doc.matchesEncoding()) {
-				menuItem.setText("Change Encoding (Matches Autodetect)");
+				menuItem.setText(format("Change Encoding (Matches Autodetect)"));
 				menuItem.setEnabled(false);
 			}
 			else {
