@@ -2,7 +2,7 @@
 <feature
       id="eclipse.encoding.plugin.feature"
       label="Autodetect Encoding"
-      version="1.8.2.qualifier"
+      version="1.8.3.qualifier"
       provider-name="Shinji Kashihara">
 
    <description url="https://github.com/cypher256/eclipse-encoding-plugin">

@@ -384,7 +384,7 @@ public class EncodingLabel implements PreferenceKey {
 			});
 		}
 
-		// Oepn Eclipse setting file
+		// Open Eclipse setting file
 		if (project != null) {
 			IEclipsePreferences pref = new ProjectScope(project).getNode("org.eclipse.core.resources/encoding");
 			Object[] keys = null;
@@ -402,7 +402,7 @@ public class EncodingLabel implements PreferenceKey {
 				desc = format("%s Resources", keys.length);
 			}
 			MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
-			menuItem.setText(formatLabel("Oepn Setting File in Project", desc));
+			menuItem.setText(formatLabel("Open Setting File in Project", desc));
 			menuItem.setImage(Activator.getImage("setting"));
 			menuItem.setEnabled(ArrayUtils.isNotEmpty(keys));
 			menuItem.addSelectionListener(new SelectionAdapter() {
