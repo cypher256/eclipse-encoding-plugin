@@ -8,11 +8,8 @@ Drag-n-drop the following button to your running Eclipse main toolbar.
 
 **Second way**  
 Eclipse > Help > Eclipse Marketplace... > Search "Autodetect Encoding"
+https://marketplace.eclipse.org/content/autodetect-encoding
 <!--
-**Eclipse Marketplace**  
-https://marketplace.eclipse.org/content/encoding-statusbar  
-Drag install button of the above site to your running Eclipse workspace to install.  
-
 **Update Site**  
 Help > Install New Software...  
 https://raw.githubusercontent.com/cypher256/eclipse-encoding-plugin/master/eclipse.encoding.plugin.update/site.xml
@@ -26,7 +23,7 @@ Line ending support showing CRLF, CR, LF and Mixed, can also be converted.
 **Change "Text File Encoding" setting by file property**  
 To add the encoding, use Preference > General > Workspace > Text File Encoding > Other.  
 ![](image/encoding_select.jpg)  
-Autodetect: Automatic detection by juniversalchardet  
+Autodetect: Automatic detection by juniversalchardet and ICU4J  
 Inheritance: Inherited from folder or project properties, workspace preferences  
 Content Type: Determined from content type setting  
 
