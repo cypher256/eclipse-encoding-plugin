@@ -200,8 +200,12 @@ public class ActiveDocument {
 			// Ignore BackingStoreException for not sync project preferences store
 			Activator.info("Failed set encoding", e);
 		}
-		warnMessage(null);
+		refresh();
+	}
 
+	public final void refresh() {
+
+		warnMessage(null);
 		update();
 	}
 
@@ -294,7 +298,7 @@ public class ActiveDocument {
 						throw new IllegalStateException("Encoding must be UTF-8 or UTF-16.");
 					}
 					setContents(newBytes);
-					setEncoding(null); // Detemined from BOM content
+					setEncoding(null); // Detemined Eclipse from BOM content
 				}
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
@@ -331,6 +335,9 @@ public class ActiveDocument {
 	}
 
 	public void convertCharset(String newEncoding) {
+		if (hasBOM()) {
+			removeBOM();
+		}
 		String content = getContentString();
 		setContents(content, newEncoding);
 		setEncoding(newEncoding);

@@ -1,6 +1,7 @@
 package mergedoc.encoding;
 
 import static mergedoc.encoding.Activator.*;
+import static mergedoc.encoding.EncodingPreferenceInitializer.DetectorValue.*;
 import static mergedoc.encoding.Langs.*;
 
 import java.lang.reflect.Field;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -116,6 +118,7 @@ public class EncodingLabel implements PreferenceKey {
 				for (MenuItem item: popupMenu.getItems()) item.dispose();
 
 				createSettingMenu();
+				createDetectorMenu();
 				createShortcutMenu();
 				createSelectionMenu();
 			}
@@ -146,6 +149,31 @@ public class EncodingLabel implements PreferenceKey {
 				if (sel && prefKey.equals(PREF_AUTODETECT_CHANGE)) {
 					ActiveDocument doc = agent.getDocument();
 					doc.infoMessage("'Set automatically' only applies if the file properties encoding is not set.");
+				}
+			}
+		});
+	}
+
+	private void createDetectorMenu() {
+
+		createDetectorMenuItem(JUNIVERSALCHARDET, "juniversalchardet");
+		createDetectorMenuItem(ICU4J, "ICU4J");
+		new MenuItem(popupMenu, SWT.SEPARATOR);
+	}
+
+	private void createDetectorMenuItem(final String prefValue, String label) {
+
+		final MenuItem menuItem = new MenuItem(popupMenu, SWT.RADIO);
+		menuItem.setText(format("Detector: " + label));
+		menuItem.setSelection(prefValue.equals(pref(PREF_DETECTOR)));
+		menuItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				boolean sel = ((MenuItem) e.widget).getSelection();
+				if (sel && !prefValue.equals(pref(PREF_DETECTOR))) {
+					Activator.getDefault().getPreferenceStore().setValue(PREF_DETECTOR, prefValue);
+					agent.getDocument().refresh();
 				}
 			}
 		});
@@ -428,7 +456,7 @@ public class EncodingLabel implements PreferenceKey {
 		boolean nonDirty = !agent.isDocumentDirty() && doc.canChangeEncoding();
 
 		// Add/Remove Bom
-		if (doc.canOperateBOM()) {
+		if (!SystemUtils.IS_OS_WINDOWS && doc.canOperateBOM()) {
 			if (doc.hasBOM()) {
 				MenuItem menuItem = new MenuItem(popupMenu, SWT.NONE);
 				menuItem.setText(format("Remove BOM"));

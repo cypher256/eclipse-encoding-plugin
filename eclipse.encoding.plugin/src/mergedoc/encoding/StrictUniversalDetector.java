@@ -38,7 +38,6 @@
 
 package mergedoc.encoding;
 
-import org.apache.commons.lang3.StringUtils;
 import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.Constants;
 import org.mozilla.universalchardet.prober.CharsetProber;
@@ -117,10 +116,6 @@ public class StrictUniversalDetector
      *          determine what encoding was used, null is returned.
      */
     public String getDetectedCharset()  {
-        // [Kashihara] Change to extended charset for Japanese
-		if (StringUtils.equalsIgnoreCase(detectedCharset, "shift_jis")) {
-			return "MS932";
-		}
         return detectedCharset;
     }
 

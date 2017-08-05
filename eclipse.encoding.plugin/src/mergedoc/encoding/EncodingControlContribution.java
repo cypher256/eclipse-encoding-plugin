@@ -55,7 +55,7 @@ public class EncodingControlContribution extends
 		gridLayout.marginHeight = 0;
 		statusBar.setLayout(gridLayout);
 
-		encodingLabel = new EncodingLabel(agent, statusBar, 100);
+		encodingLabel = new EncodingLabel(agent, statusBar, 110);
 		Label separator = new Label(statusBar, SWT.SEPARATOR | SWT.VERTICAL);
 		separator.setLayoutData(new GridData(GridData.FILL_BOTH));
 		lineSeparatorLabel = new LineSeparatorLabel(agent, statusBar, 40);

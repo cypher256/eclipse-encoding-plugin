@@ -59,6 +59,10 @@ public class Activator extends AbstractUIPlugin {
 		return plugin.getPreferenceStore().getBoolean(prefKey);
 	}
 
+	public static String pref(String prefKey) {
+		return plugin.getPreferenceStore().getString(prefKey);
+	}
+
 	@Override
 	protected void initializeImageRegistry(ImageRegistry reg) {
 		loadImage(reg, "/icons");

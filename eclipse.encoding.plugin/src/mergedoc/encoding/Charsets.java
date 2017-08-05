@@ -1,5 +1,9 @@
 package mergedoc.encoding;
 
+import static mergedoc.encoding.Activator.*;
+import static mergedoc.encoding.EncodingPreferenceInitializer.DetectorValue.*;
+import static mergedoc.encoding.EncodingPreferenceInitializer.PreferenceKey.*;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +15,9 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.swt.graphics.Image;
+
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
 
 /**
  * Provide charset related utility functions.
@@ -31,11 +38,21 @@ public class Charsets {
 	 * @return true/false
 	 */
 	public static boolean equals(String a, String b) {
-		if (a == null || b == null) return false;
-		try {
-			return Charset.forName(a).name().equals(Charset.forName(b).name());
-		} catch (IllegalArgumentException e) {
+		if (a == null || b == null) {
 			return false;
+		}
+		if (a.equalsIgnoreCase(b)) {
+			return true;
+		}
+		return canonicalName(a).equalsIgnoreCase(canonicalName(b));
+	}
+
+	private static String canonicalName(String charset) {
+		try {
+			return Charset.forName(charset).name();
+		} catch (Exception e) {
+			Activator.info(e.toString(), e);
+			return charset;
 		}
 	}
 
@@ -45,25 +62,38 @@ public class Charsets {
 	 * @return the detected charsets or null.
 	 */
 	public static String detect(InputStream in) {
+		String charset = null;
 		if (in != null) {
 			InputStream bin = new BufferedInputStream(in);
 			try {
-				StrictUniversalDetector detector = new StrictUniversalDetector();
-				byte[] buf = new byte[8192];
-				int nread;
-				while ((nread = in.read(buf)) > 0 && !detector.isDone()) {
-					detector.handleData(buf, 0, nread);
+				// ICU4J
+				if (ICU4J.equals(pref(PREF_DETECTOR))) {
+					CharsetDetector detector = new CharsetDetector();
+					detector.setText(bin);
+					CharsetMatch[] matches = detector.detectAll();
+					if (matches != null && matches.length > 0) {
+						charset = matches[0].getName();
+					}
 				}
-				detector.dataEnd();
-				String charset = detector.getDetectedCharset();
-				return toMicrosoftName(charset);
+				// juniversalchardet
+				else {
+					StrictUniversalDetector detector = new StrictUniversalDetector();
+					byte[] buf = new byte[8192];
+					int nread;
+					while ((nread = in.read(buf)) > 0 && !detector.isDone()) {
+						detector.handleData(buf, 0, nread);
+					}
+					detector.dataEnd();
+					charset = detector.getDetectedCharset();
+				}
+				charset = toMicrosoftName(charset);
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			} finally {
 				IOUtils.closeQuietly(bin);
 			}
 		}
-		return null;
+		return charset;
 	}
 
 	/**
@@ -72,6 +102,7 @@ public class Charsets {
 	 * value: java.io  canonical name (Microsoft Java default encoding name)
 	 */
 	private static final Map<String, String> msCharsetMap = new HashMap<String, String>() {{
+		put("shift_jis", "MS932");
 		put("windows-31j", "MS932");
 		put("windows-1250", "Cp1250");
 		put("windows-1251", "Cp1251");
@@ -96,7 +127,7 @@ public class Charsets {
 		if (charset == null) {
 			return null;
 		}
-		String canonicalName = Charset.forName(charset).name();
+		String canonicalName = canonicalName(charset);
 		String windowsCharset = msCharsetMap.get(canonicalName.toLowerCase());
 		if (windowsCharset != null) {
 			canonicalName = windowsCharset;
@@ -115,7 +146,7 @@ public class Charsets {
 			return null;
 		}
 		// convert to java.nio canonical name
-		String ianaName = Charset.forName(charset).name();
+		String ianaName = canonicalName(charset);
 		if (ianaName.equalsIgnoreCase("windows-31j")) {
 			ianaName = "Windows-31J";
 		}
@@ -123,8 +154,11 @@ public class Charsets {
 	}
 
 	public static Image getImage(String charset) {
+		if (charset == null) {
+			return null;
+		}
 		// java.nio canonical name lowercase
-		String name = Charset.forName(charset).name().toLowerCase();
+		String name = canonicalName(charset).toLowerCase();
 		if (name.equals("windows-31j") || name.contains("jp") || name.contains("jis")) {
 			return Activator.getImage("japan");
 		}
