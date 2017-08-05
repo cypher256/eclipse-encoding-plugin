@@ -122,12 +122,16 @@ public class ActiveDocument {
 		sb.append(currentEncoding);
 		if (canOperateBOM()) {
 			if (bom != null) {
-				if (bom == BOM_UTF_16BE) {
-					sb.append(" BE");
-				} else if (bom == BOM_UTF_16LE) {
-					sb.append(" LE");
+				if (currentEncoding.equals("UTF-16")) {
+					if (bom == BOM_UTF_16BE) {
+						sb.append(" BE");
+					} else if (bom == BOM_UTF_16LE) {
+						sb.append(" LE");
+					}
 				}
-				sb.append(" BOM");
+				if (currentEncoding.startsWith("UTF-")) {
+					sb.append(" BOM");
+				}
 			}
 		}
 		return sb.toString();
