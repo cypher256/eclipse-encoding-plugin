@@ -201,14 +201,15 @@ public class Charsets {
 		return null;
 	}
 
-	public static void add(List<String> charsetList, String charset) {
-		if (charset != null) {
+	public static void add(List<String> charsetList, String addition) {
+		if (addition != null) {
+			String charset = toMicrosoftName(addition);
 			for (String e : charsetList) {
 				if (Charsets.equals(e, charset)) {
 					return;
 				}
 			}
-			charsetList.add(toMicrosoftName(charset));
+			charsetList.add(charset);
 			Collections.sort(charsetList);
 		}
 	}
