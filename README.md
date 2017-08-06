@@ -35,3 +35,7 @@ An automatically set is not enabled by default.
 [Eclipse Public License - v 1.0](https://www.eclipse.org/legal/epl-v10.html)  
 Copyright (c) 2016- Shinji Kashihara and others. All rights reserved.  
 Original source: [ystsoi/eclipse-fileencodinginfo](https://github.com/ystsoi/eclipse-fileencodinginfo)
+
+<a href="http://with-eclipse.github.io/" target="_blank">
+<img alt="with-Eclipse logo" src="http://with-eclipse.github.io/with-eclipse-0.jpg" />
+</a>
