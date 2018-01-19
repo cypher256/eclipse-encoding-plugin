@@ -3,7 +3,7 @@
    <description name="Autodetect Encoding Update Site Snapshot" url="https://raw.githubusercontent.com/cypher256/eclipse-encoding-plugin/master/eclipse.encoding.updatesite.snapshot/site.xml">
       An update site snapshot for Autodetect Encoding Eclipse Plugin.
    </description>
-   <feature url="features/eclipse.encoding.plugin.feature_1.8.4.201708052053.jar" id="eclipse.encoding.plugin.feature" version="1.8.4.201708052053">
+   <feature url="features/eclipse.encoding.plugin.feature_1.8.5.201801191359.jar" id="eclipse.encoding.plugin.feature" version="1.8.5.201801191359">
       <category name="eclipse.encoding.plugin.category"/>
    </feature>
    <category-def name="eclipse.encoding.plugin.category" label="Autodetect Encoding"/>

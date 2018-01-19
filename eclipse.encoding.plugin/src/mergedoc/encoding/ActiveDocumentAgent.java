@@ -92,7 +92,7 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 			// No opened editor in workspace
 			return new NonOpenedDocument();
 		}
-		
+
 		if (editor.getAdapter(IEncodingSupport.class) != null) {
 
 			// Get MultiPartEditor active tab (plugin.xml MANIFEST.MF tab, etc...)
@@ -123,12 +123,20 @@ public class ActiveDocumentAgent implements IPropertyListener, IPartListener, IP
 				// Fallback
 				Activator.info("No Content: " + editorInput.getClass().getName());
 				return new ActiveDocument(editor, callback);
-			} else if (editorInput.getClass().getSimpleName().equals("InternalClassFileEditorInput")) {
+			}
+			/*
+			[Issue] IllegalStateException thrown when JavaScript resource is opened #9
+			Seems confused with
+				org.eclipse.jdt.internal.ui.javaeditor.InternalClassFileEditorInput (Java editor)
+				org.eclipse.wst.jsdt.internal.ui.javaeditor.InternalClassFileEditorInput (JavaScript editor)
+			 */
+			//else if (editorInput.getClass().getSimpleName().equals("InternalClassFileEditorInput")) {
+			else if (editorInput.getClass().getName().equals("org.eclipse.jdt.internal.ui.javaeditor.InternalClassFileEditorInput")) {
 				// Class file in jar (with source and without source)
 				return new ClassFileJarDocument(editor, callback);
 			}
 		}
-		
+
 		// MultiPageEditor no document tab (plugin.xml overview tab, etc...)
 		return new NullDocument(editor);
 	}
