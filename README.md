@@ -1,5 +1,5 @@
 # Autodetect Encoding Eclipse Plugin
-[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=ff69b4)](https://github.com/sponsors/cypher256)
+[![GitHub Sponsor](https://img.shields.io/static/v1?label=Buy%20me%20a%20coffee&message=%E2%9D%A4&logo=coffeescript&color=orange)](https://github.com/sponsors/cypher256)
 
 Show file information for the active editor in the Eclipse status bar.  
 
